@@ -2,19 +2,19 @@ $(document).ready(
     function(){
         
         var canvas = document.getElementById("myCanvas");
-        paper.setup(canvas);
-        var maxSize = Math.min(canvas.width, canvas.height);
+	paper.setup(canvas);
+        var maxSize = Math.min(canvas.style.width, canvas.style.height);
         var center = canvas.center;
         
         function csx (s) {
             //~ scale an int to the relative size to the canvas width
-            s = s * (canvas.width / 100)
+            s = s * (canvas.style.width.slice(0, -2) / 100)
             return s
         }
         
         function csy (s) {
             //~ scale an int to the relative size to the canvas height
-            s = s * (canvas.height / 100)
+            s = s * (canvas.style.height.slice(0, -2) / 100)
             return s
         }
         
