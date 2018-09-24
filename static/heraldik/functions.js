@@ -5,16 +5,19 @@ $(document).ready(
 	paper.setup(canvas);
         var maxSize = Math.min(canvas.style.width, canvas.style.height);
         var center = canvas.center;
+
+	var finalDrawWidth = canvas.style.width.slice(0, -2) > 0 ? canvas.style.width.slice(0, -2) :  canvas.width;
+	var finalDrawHeight = canvas.style.height.slice(0, -2) > 0 ? canvas.style.height.slice(0, -2) : canvas.height;
         
         function csx (s) {
             //~ scale an int to the relative size to the canvas width
-            s = s * (canvas.style.width.slice(0, -2) / 100)
+            s = s * (finalDrawWidth / 100)
             return s
         }
         
         function csy (s) {
             //~ scale an int to the relative size to the canvas height
-            s = s * (canvas.style.height.slice(0, -2) / 100)
+            s = s * (finalDrawHeight / 100)
             return s
         }
         
