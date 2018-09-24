@@ -1,0 +1,67 @@
+body {
+    /*background-color: #465bc5; */
+    background-color: white;
+    font-family: Andale Mono, monospace;
+}
+
+#allContainer {
+    height: 94vh;
+    width: 96vw;
+    padding-top: 1vh;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    padding-bottom: 1vh;
+}
+
+#headerContainer {
+    height: 8%;
+    width: 97.5%;
+    /* background-color: #7c8dde; */
+    background-color: lightgrey;
+    float: left;
+    display: inline-block;
+    padding: 0.5%;
+    padding-left: 1%;
+    margin: 0.5%;
+    border-radius: 25px;
+}
+
+#userinputContainer, #drawingContainer, #exampleContainer {
+    height: 88%;
+    width: 31.3333333333333333333333333333333333333333333333%;
+    /* background-color: #7c8dde; */
+    background-color: lightgrey;
+/*
+    background-color: #F5DEB3;
+*/
+    float: left;
+    display: inline-block;
+    border-color: black;
+    padding: 0.5%;
+    margin: 0.5%;
+    border-radius: 25px;
+    text-align: center;
+}
+
+button {
+    margin-top: 10%;
+}
+
+#myCanvas {
+    margin-top: 10%;
+    width: 90%;
+    height: 80%;
+    background-color: white;
+}
+
+#exampleShield {
+    padding-top: 10%;
+    width: 90%;
+    height: 80%;
+}
+
+textarea {
+    font-size: 2em;
+    height: 80%;
+    width: 80%;
+}

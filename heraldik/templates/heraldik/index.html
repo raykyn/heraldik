@@ -1,0 +1,35 @@
+{% load static %}
+
+<meta charset="utf-8">
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'heraldik/style.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{% static 'heraldik/libs/paperjs-v0.11.5/dist/paper-full.min.js' %}"></script>
+    <script src="{% static 'heraldik/functions.js' %}"></script>
+    <title>Blasonierungsübung</title>
+</head> 
+
+<body>
+    <div id="allContainer">
+        <div id="headerContainer">
+            <h1>Blasonierungsübung</h1>
+        </div>
+        <div id="userinputContainer">
+            <p>Gib Deine Blasonierung hier ein:</p>
+            <textarea id="blasonierung" autofocus></textarea>
+            <button id="updateBlaz">Überprüfe Blasonierung</button>
+        </div>
+        
+        
+        <div id="drawingContainer">
+            <canvas id="myCanvas"></canvas>
+        </div>
+        
+        
+        <div id="exampleContainer">
+            <img id="exampleShield" src="{% static 'heraldik/images/example.jpg' %}"/>
+            <button id="getRandomShieldButton">Neue Aufgabe</button>
+        </div>
+    </div>
+</body>
+
