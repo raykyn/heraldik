@@ -2,19 +2,22 @@ $(document).ready(
     function(){
         
         var canvas = document.getElementById("myCanvas");
-        paper.setup(canvas);
-        var maxSize = Math.min(canvas.width, canvas.height);
+	paper.setup(canvas);
+        var maxSize = Math.min(canvas.style.width, canvas.style.height);
         var center = canvas.center;
+
+	var finalDrawWidth = canvas.style.width.slice(0, -2) > 0 ? canvas.style.width.slice(0, -2) :  canvas.width;
+	var finalDrawHeight = canvas.style.height.slice(0, -2) > 0 ? canvas.style.height.slice(0, -2) : canvas.height;
         
         function csx (s) {
             //~ scale an int to the relative size to the canvas width
-            s = s * (canvas.width / 100)
+            s = s * (finalDrawWidth / 100)
             return s
         }
         
         function csy (s) {
             //~ scale an int to the relative size to the canvas height
-            s = s * (canvas.height / 100)
+            s = s * (finalDrawHeight / 100)
             return s
         }
         
@@ -569,12 +572,16 @@ $(document).ready(
         		}
         	}
         	else {
+        		// TODO find out if width or height is the smaller one, then 
+        		// use that as the size on both sides
         		if(figures.length == 1) {
 	        		var raster = getFigur(figures[0]);
 	        		raster.bounds.x = x[0];
 	        		raster.bounds.y = x[1];
-	        		raster.bounds.width = (y[0] - x[0]) * 0.6;
-	        		raster.bounds.height = (y[1] - x[1]) * 0.6;
+	        		widthValue = (y[0] - x[0]) * 0.6;
+	        		heightValue = (y[1] - x[1]) * 0.6;
+	        		raster.bounds.width = Math.min(widthValue, heightValue);
+	        		raster.bounds.height = Math.min(widthValue, heightValue);
 	        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/2), x[1]+(y[1]-x[1])/2);
 	        	
 	        		group.addChild(raster);
@@ -582,24 +589,30 @@ $(document).ready(
 	        	// for each number of figures, there is a special formation
 	        	// For the instance, I will implement until 7 figures
 	        	else if(figures.length == 2) {
+	        		widthValue = (y[0] - x[0]) * 0.3;
+	        		heightValue = (y[1] - x[1]) * 0.3;
+	        		minValue = Math.min(widthValue, heightValue);
 	        		for (var i = 0; i < figures.length; i++) {
 	        			var raster = getFigur(figures[i]);
 		        		raster.bounds.x = x[0];
 		        		raster.bounds.y = x[1];
-		        		raster.bounds.width = (y[0] - x[0]) * 0.3;
-		        		raster.bounds.height = (y[1] - x[1]) * 0.3;
+		        		raster.bounds.width = minValue;
+		        		raster.bounds.height = minValue;
 		        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/3*(i+1)), x[1]+((y[1]-x[1])/2));
 	        		
 	        			group.addChild(raster);
 	        		}
 	        	}
 	        	else if(figures.length == 3) {
+	        		widthValue = (y[0] - x[0]) * 0.25;
+	        		heightValue = (y[1] - x[1]) * 0.25;
+	        		minValue = Math.min(widthValue, heightValue);
 	        		for (var i = 0; i < 2; i++) {
 	        			var raster = getFigur(figures[i]);
 		        		raster.bounds.x = x[0];
 		        		raster.bounds.y = x[1];
-		        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-		        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+		        		raster.bounds.width = minValue;
+		        		raster.bounds.height = minValue;
 		        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/3*(i+1)), x[1]+((y[1]-x[1])/3));
 	        		
 		        		group.addChild(raster);
@@ -607,20 +620,23 @@ $(document).ready(
 	        		var raster = getFigur(figures[2]);
 	        		raster.bounds.x = x[0];
 	        		raster.bounds.y = x[1];
-	        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-	        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+	        		raster.bounds.width = minValue;
+	        		raster.bounds.height = minValue;
 	        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/2), x[1]+((y[1]-x[1])/3*2));
 	        		
 	        		group.addChild(raster);
 	        	}
 	        	else if(figures.length == 4) {
+	        		widthValue = (y[0] - x[0]) * 0.25;
+	        		heightValue = (y[1] - x[1]) * 0.25;
+	        		minValue = Math.min(widthValue, heightValue);
 	        		for (var i = 0; i < 2; i++) {
 	        			for (var j = 0; j < 2; j++) {
 		        			var raster = getFigur(figures[(i*2)+j]);
 			        		raster.bounds.x = x[0];
 			        		raster.bounds.y = x[1];
-			        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-			        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+			        		raster.bounds.width = minValue;
+			        		raster.bounds.height = minValue;
 			        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/3*(i+1)), x[1]+((y[1]-x[1])/3*(j+1)));
 			        	
 			        		group.addChild(raster);
@@ -628,13 +644,16 @@ $(document).ready(
 	        		}
 	        	}
 	        	else if(figures.length == 5) {
+	        		widthValue = (y[0] - x[0]) * 0.2;
+	        		heightValue = (y[1] - x[1]) * 0.2;
+	        		minValue = Math.min(widthValue, heightValue);
 	        		for (var i = 0; i < 2; i++) {
 	        			for (var j = 0; j < 2; j++) {
 		        			var raster = getFigur(figures[(i*2)+j]);
 			        		raster.bounds.x = x[0];
 			        		raster.bounds.y = x[1];
-			        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-			        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+			        		raster.bounds.width = minValue;
+			        		raster.bounds.height = minValue;
 			        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/3*(i+1)), x[1]+((y[1]-x[1])/4*(j+1)));
 			        	
 			        		group.addChild(raster);
@@ -643,49 +662,56 @@ $(document).ready(
 	        		var raster = getFigur(figures[4]);
 	        		raster.bounds.x = x[0];
 	        		raster.bounds.y = x[1];
-	        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-	        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+	        		raster.bounds.width = minValue;
+	        		raster.bounds.height = minValue;
 	        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/2), x[1]+((y[1]-x[1])/4*3));
 	        	
 	        		group.addChild(raster);
 	        	}
 	        	else if(figures.length == 6) {
+	        		widthValue = (y[0] - x[0]) * 0.2;
+	        		heightValue = (y[1] - x[1]) * 0.2;
+	        		minValue = Math.min(widthValue, heightValue);
 	        		for (var i = 0; i < 3; i++) {
 	        			var raster = getFigur(figures[i]);
 		        		raster.bounds.x = x[0];
 		        		raster.bounds.y = x[1];
-		        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-		        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+		        		raster.bounds.width = minValue;
+		        		raster.bounds.height = minValue;
 		        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/4*(i+1)), x[1]+((y[1]-x[1])/4));
 	        		
 		        		group.addChild(raster);
 	        		}
+	        		// Change so that elements are in between of the upper and lower elements
 	        		for (var i = 0; i < 2; i++) {
 	        			var raster = getFigur(figures[i+3]);
 		        		raster.bounds.x = x[0];
 		        		raster.bounds.y = x[1];
-		        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-		        		raster.bounds.height = (y[1] - x[1]) * 0.2;
-		        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/3*(i+1)), x[1]+((y[1]-x[1])/4*2));
+		        		raster.bounds.width = minValue;
+		        		raster.bounds.height = minValue;
+		        		raster.position = new paper.Point(x[0]+(y[0]-x[0])/4*(i+1.5), x[1]+((y[1]-x[1])/4*2));
 	        		
 		        		group.addChild(raster);
 	        		}
 	        		var raster = getFigur(figures[5]);
 	        		raster.bounds.x = x[0];
 	        		raster.bounds.y = x[1];
-	        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-	        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+	        		raster.bounds.width = minValue;
+	        		raster.bounds.height = minValue;
 	        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/2), x[1]+((y[1]-x[1])/4*3));
 	        	
 	        		group.addChild(raster);
 	        	}
 	        	else if(figures.length == 7) {
+	        		widthValue = (y[0] - x[0]) * 0.2;
+	        		heightValue = (y[1] - x[1]) * 0.2;
+	        		minValue = Math.min(widthValue, heightValue);
 	        		for (var i = 0; i < 3; i++) {
 	        			var raster = getFigur(figures[i]);
 		        		raster.bounds.x = x[0];
 		        		raster.bounds.y = x[1];
-		        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-		        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+		        		raster.bounds.width = minValue;
+		        		raster.bounds.height = minValue;
 		        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/4*(i+1)), x[1]+((y[1]-x[1])/4));
 	        		
 		        		group.addChild(raster);
@@ -694,8 +720,8 @@ $(document).ready(
 	        			var raster = getFigur(figures[i+3]);
 		        		raster.bounds.x = x[0];
 		        		raster.bounds.y = x[1];
-		        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-		        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+		        		raster.bounds.width = minValue;
+		        		raster.bounds.height = minValue;
 		        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/4*(i+1)), x[1]+((y[1]-x[1])/4*2));
 	        		
 		        		group.addChild(raster);
@@ -703,8 +729,8 @@ $(document).ready(
 	        		var raster = getFigur(figures[6]);
 	        		raster.bounds.x = x[0];
 	        		raster.bounds.y = x[1];
-	        		raster.bounds.width = (y[0] - x[0]) * 0.2;
-	        		raster.bounds.height = (y[1] - x[1]) * 0.2;
+	        		raster.bounds.width = minValue;
+	        		raster.bounds.height = minValue;
 	        		raster.position = new paper.Point(x[0]+((y[0]-x[0])/2), x[1]+((y[1]-x[1])/4*3));
 	        
 	        		group.addChild(raster);
@@ -1149,11 +1175,13 @@ $(document).ready(
         $("#updateBlaz").click( function()
             {
                 var blaz = $("textarea#blasonierung").val();
-                $.get("output", { input: blaz, }).done(
+                if(blaz.length > 0) {
+                	$.get("output", { input: blaz, }).done(
                     function(data) {
                         console.log(data);
                         startDrawing(data);
-                });
+                	});
+                }
             }
         );
     }

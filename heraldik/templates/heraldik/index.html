@@ -9,15 +9,22 @@
     <title>Blasonierungsübung</title>
 </head> 
 
+
 <body>
     <div id="allContainer">
         <div id="headerContainer">
             <h1>Blasonierungsübung</h1>
         </div>
         <div id="userinputContainer">
-            <p>Gib Deine Blasonierung hier ein:</p>
-            <textarea id="blasonierung" autofocus></textarea>
-            <button id="updateBlaz">Überprüfe Blasonierung</button>
+            <div id="gibblason-div">
+                <p id="gibblason">Gib Deine Blasonierung hier ein:</p>
+            </div>
+            <div id="textarea-div">
+                <textarea id="blasonierung" autofocus></textarea> 
+            </div>
+            <div id="updateBlaz-div">
+                <button id="updateBlaz">Überprüfe Blasonierung</button>
+            </div>
         </div>
         
         
@@ -27,9 +34,12 @@
         
         
         <div id="exampleContainer">
-            <img id="exampleShield" src="{% static 'heraldik/images/example.jpg' %}"/>
-            <button id="getRandomShieldButton">Neue Aufgabe</button>
+            <div id="exampleShield-div">
+                <img id="exampleShield" src="{% static 'heraldik/images/example.jpg' %}"/>
+            </div>
+            <div id="getRandomShieldButton-div">
+                <button id="getRandomShieldButton">Neue Aufgabe</button>
+            </div>
         </div>
     </div>
 </body>
-

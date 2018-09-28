@@ -27,8 +27,10 @@ body {
 }
 
 #userinputContainer, #drawingContainer, #exampleContainer {
-    height: 88%;
-    width: 31.3333333333333333333333333333333333333333333333%;
+    /*height: 88%; */
+    width: 32.3333333333333333333333333333333333333333333333%;
+    padding-top: 31.333%;
+
     /* background-color: #7c8dde; */
     background-color: lightgrey;
 /*
@@ -37,31 +39,105 @@ body {
     float: left;
     display: inline-block;
     border-color: black;
-    padding: 0.5%;
+    /*padding: 0.5%; */
     margin: 0.5%;
     border-radius: 25px;
     text-align: center;
-}
-
-button {
-    margin-top: 10%;
+    position: relative;
 }
 
 #myCanvas {
-    margin-top: 10%;
-    width: 90%;
+    width: 80%;
     height: 80%;
     background-color: white;
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    bottom: 0;
+    right: 0;
 }
 
 #exampleShield {
-    padding-top: 10%;
-    width: 90%;
-    height: 80%;
+    width: 95%;
+    height: 95%;
+    position: absolute;
+    top: 0;
+    left: 2.5%;
+    bottom: 5%;
+    right: 2.5%;
 }
 
 textarea {
-    font-size: 2em;
-    height: 80%;
-    width: 80%;
+    font-size: 1.2vw;
+    height: 90%;
+    width: 90%;
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    right: 5%;
+    bottom: 5%;
+}
+
+#gibblason {
+    font-size: 1vw;
+}
+
+#updateBlaz {
+    height: 90%;
+    width: 90%;
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    right: 5%;
+    bottom: 5%;
+}
+
+#gibblason-div {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    right: 10%;
+    bottom: 80%;
+}
+
+#textarea-div {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    right: 10%;
+    bottom: 20%;
+}
+
+#updateBlaz-div {
+    position: absolute;
+    top: 80%;
+    left: 10%;
+    right: 10%;
+    bottom: 10%;
+}
+
+#exampleShield-div {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    right: 10%;
+    bottom: 20%;
+}
+
+#getRandomShieldButton-div {
+    position: absolute;
+    top: 80%;
+    left: 10%;
+    right: 10%;
+    bottom: 10%;
+}
+
+#getRandomShieldButton {
+    height: 90%;
+    width: 90%;
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    right: 5%;
+    bottom: 5%;
 }
