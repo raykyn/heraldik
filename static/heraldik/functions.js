@@ -147,31 +147,61 @@ $(document).ready(
         	}
            	var figureName = figures[0].getAttribute("figure")
            	// Check for all special figures like [Pfahl, Balken, Schräg-, usw.]
+           	var group;
+
            	if(figureName == "Pfahl" || figureName == "Pfähle") {
-           		drawPfahl(figures, x, y);
+           		group = drawPfahl(figures, x, y);
            	}
            	else if(figureName == "Balken") {
-           		drawBalken(figures, x, y);
+           		// needs to return a group element
+           		group = drawBalken(figures, x, y);
            	}
            	else if(figureName == "Schrägbalken") {
-           		drawSchraegbalken(figures, x, y);
+           		group = drawSchraegbalken(figures, x, y);
+           	}
+           	else if(figureName == "Schräglinksbalken") {
+           		group = drawSchraegbalken(figures, x, y, false, true);
            	}
            	else if(figureName == "Kreuz" && figures.length == 1) {
-           		drawKreuz(figures, x, y);
+           		group = drawKreuz(figures, x, y);
+           	}
+           	else if(figureName == "Sparren") {
+           		group = drawSparren(figures, x, y);
            	}
            	else if(figureName == "Zwillingspfahl") {
-           		drawZwillingspfahl(figures, x, y);
+           		group = drawZwillingspfahl(figures, x, y);
            	}
            	else if(figureName == "Zwillingsbalken") {
-           		drawZwillingsbalken(figures, x, y);
+           		group = drawZwillingsbalken(figures, x, y);
            	}
            	else if(figureName == "Zwillingsschrägbalken") {
-           		drawZwillingsschraegbalken(figures, x, y);
+           		group = drawZwillingsschraegbalken(figures, x, y);
            	}
+           	// else if(figureName == "Schrägleiste" || figureName == "Schrägleisten") {
+           	// 	drawSchraegbalken(figures, x, y, true);
+           	// }
            	// all other figures
            	else {
-           		drawFigur(figures, x, y, node.getAttribute("formation"));
+           		group = drawFigur(figures, x, y, node.getAttribute("formation"));
            	}
+
+           	// Check for a "Ueberdeckt"-Element
+           	// If exists: Draw the new FGroup inside the borders
+           	// of the old FGroup
+           	// (Genius!)
+           	var ueberdeckend = []
+        	for (var i = 0; i < node.children.length; i++) {
+        		if (node.children[i].nodeName == "Ueberdeckt") {
+        			ueberdeckend.push(node.children[i]);
+        		}
+        	}
+            if(ueberdeckend.length == 1) {
+                // Exactly one group of figures
+                var fgroupcount = ueberdeckend[0].children.length;
+                for (var i = 0; i < fgroupcount; i++) {
+                	drawFGroup(ueberdeckend[0].children[i], [group.bounds.x, group.bounds.y], [group.bounds.x + group.bounds.width, group.bounds.y + group.bounds.height]);
+                }
+            }
         }
 
         function createBerg() {
@@ -247,12 +277,12 @@ $(document).ready(
         	hochkreuz.add(new paper.Point(-65, -100));
         	hochkreuz.add(new paper.Point(-65, -70));
         	hochkreuz.add(new paper.Point(-40, -70));
-        	hochkreuz.add(new paper.Point(-40, -60));
-        	hochkreuz.add(new paper.Point(-65, -60));
+        	hochkreuz.add(new paper.Point(-40, -55));
+        	hochkreuz.add(new paper.Point(-65, -55));
         	hochkreuz.add(new paper.Point(-65, 0));
         	hochkreuz.add(new paper.Point(-75, 0));
-        	hochkreuz.add(new paper.Point(-75, -60));
-        	hochkreuz.add(new paper.Point(-100, -60));
+        	hochkreuz.add(new paper.Point(-75, -55));
+        	hochkreuz.add(new paper.Point(-100, -55));
         	hochkreuz.add(new paper.Point(-100, -70));
         	hochkreuz.add(new paper.Point(-75, -70));
         	hochkreuz.add(new paper.Point(-75, -100));
@@ -360,9 +390,63 @@ $(document).ready(
 	        	// "besetzt", "belegt" usw.
 	        	var raster = drawBesetzt(raster, figures);
 	        	var raster = drawBelegt(raster, figures);
+	        	var raster = drawBegleitet(raster, figures);
         	}
 
         	return raster
+        }
+
+        function drawBegleitet(main, figure) {
+        	var begleitetList = [];
+        	for (var i = 0; i < figure.children.length; i++) {
+        		if (figure.children[i].nodeName == "Begleitet") {
+        			begleitetList.push(figure.children[i]);
+        		}
+        	}
+
+        	if(begleitetList.length < 1) {
+        		return main;
+        	}
+
+        	var group = new paper.Group([main]);
+
+        	for (var i = 0; i < begleitetList.length; i++) {
+        		//var orientation = begleitetList[i].getAttribute("orientation");
+        		// info we need: formation of the fgroup
+        		var fgroup = begleitetList[i].children[0];
+        		var formation = fgroup.getAttribute("formation");
+
+        		if(formation == "2:2 gestellten") {
+        			// read all elements of the fgroup
+        			// first elements goes upper left
+        			// second upper right
+        			// etc.
+        			// we need to determine size of the figures
+        			// and position of the figures
+        			var size = main.bounds.width/3;
+        			var positions = [
+        				new paper.Point(main.bounds.x, main.bounds.y),
+        				new paper.Point(main.bounds.x + main.bounds.width, main.bounds.y),
+        				new paper.Point(main.bounds.x, main.bounds.y + main.bounds.height),
+        				new paper.Point(main.bounds.x + main.bounds.width, main.bounds.y + main.bounds.height),
+        				];
+
+        			for (var i = 0; i < 4; i++) {
+        				var raster = getFigur(fgroup.children[i]);
+        				raster.bounds.width = size;
+        				raster.bounds.height = size;
+        				raster.bounds.center = positions[i];
+
+        				group.addChild(raster);
+        			}
+        		}
+        		else {
+        			console.log("Unknown formation for Begleitet element.");
+        		}
+
+        	}
+
+        	return group
         }
 
         function drawBelegt(main, figure) {
@@ -742,12 +826,18 @@ $(document).ready(
         function drawPfahl( figures, x, y ) {
         	// find out how many Pfähle exist
         	// 3 levels: single (Pfahl), 2-4 (schmaler Pfahl), more than 4 (Stäbe/Faden)
+        	var group = new paper.Group();
+
         	if(figures.length == 1) {
-        		var pfahlLength = (y[0]-x[0])/6;
+        		var pfahlLength = (y[0]-x[0])/4;
         		var rect = new paper.Rectangle(new paper.Point(((y[0]-x[0])/2)+x[0]-pfahlLength/2, x[1]), new paper.Point(((y[0]-x[0])/2)+x[0]+pfahlLength/2, y[1]));
         		var path = new paper.Path.Rectangle(rect);
         		path.strokeColor = "black";
         		path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+
+        		path = drawFormBegleitung(path, figures[0], "pfahl", x, y);
+
+        		group.addChild(path);
         	}
         	else if(figures.length < 5) {
         		var pfahlLength = (y[0]-x[0])/8;
@@ -757,6 +847,8 @@ $(document).ready(
         			var path = new paper.Path.Rectangle(rect);
         			path.strokeColor = "black";
         			path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+
+        			group.addChild(path);
         		}
         	}
         	else {
@@ -767,20 +859,30 @@ $(document).ready(
         			var path = new paper.Path.Rectangle(rect);
         			path.strokeColor = "black";
         			path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+
+        			group.addChild(path);
         		}
         	}
+
+        	return group;
         }
 
         function drawBalken( figures, x, y ) {
         	// Uses the same code as Pfahl only with different orientation
         	// find out how many Balken exist
         	// 3 levels: single (Balken), 2-4 (schmaler Balken), more than 4 (Balken)
+        	var group = new paper.Group();
+
         	if(figures.length == 1) {
-        		var balkenLength = (y[1]-x[1])/6;
+        		var balkenLength = (y[1]-x[1])/4;
         		var rect = new paper.Rectangle(new paper.Point(x[0], ((y[1]-x[1])/2)+x[1]-balkenLength/2), new paper.Point(y[0], ((y[1]-x[1])/2)+x[1]+balkenLength/2));
         		var path = new paper.Path.Rectangle(rect);
         		path.strokeColor = "black";
         		path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+
+        		path = drawFormBegleitung(path, figures[0], "balken", x, y);
+
+        		group.addChild(path);
         	}
         	else if(figures.length < 5) {
         		var balkenLength = (y[1]-x[1])/8;
@@ -790,6 +892,8 @@ $(document).ready(
         			var path = new paper.Path.Rectangle(rect);
         			path.strokeColor = "black";
         			path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+
+        			group.addChild(path);
         		}
         	}
         	else {
@@ -800,8 +904,12 @@ $(document).ready(
         			var path = new paper.Path.Rectangle(rect);
         			path.strokeColor = "black";
         			path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+
+        			group.addChild(path);
         		}
         	}
+
+        	return group;
         }
 
         function drawZwillingspfahl( figures, x, y ) {
@@ -810,18 +918,23 @@ $(document).ready(
         		console.log("Not more than one Zwillingspfahl allowed.");
         		return;
         	}
+        	var group = new paper.Group();
         	var pfahlLength = (y[0]-x[0])/4;
         	var rect = new paper.Rectangle(new paper.Point(((y[0]-x[0])/2)+x[0]-pfahlLength/2, x[1]), new paper.Point(((y[0]-x[0])/2)+x[0]+pfahlLength/2, y[1]));
         	var rect1 = new paper.Rectangle(new paper.Point(rect.x, rect.y), new paper.Point(rect.x + rect.width/4, rect.y + rect.height));
         	var path = new paper.Path.Rectangle(rect1);
         	path.strokeColor = "black";
         	path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+        	group.addChild(path);
         	var rect2 = new paper.Rectangle(new paper.Point(rect.x + rect.width*0.75, rect.y), new paper.Point(rect.x + rect.width, rect.y + rect.height));
         	var path = new paper.Path.Rectangle(rect2);
         	path.strokeColor = "black";
         	path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+        	group.addChild(path);
 
-        	drawUmschliesst(rect, figures[0], "pfahl");
+        	group.addChild(drawUmschliesst(rect, figures[0], "pfahl"));
+
+        	return group;
         }
 
         function drawZwillingsbalken( figures, x, y ) {
@@ -830,18 +943,23 @@ $(document).ready(
         		console.log("Not more than one Zwillingsbalken allowed.");
         		return;
         	}
+        	var group = new paper.Group();
         	var balkenLength = (y[1]-x[1])/4;
         	var rect = new paper.Rectangle(new paper.Point(x[0], ((y[1]-x[1])/2)+x[1]-balkenLength/2), new paper.Point(y[0], ((y[1]-x[1])/2)+x[1]+balkenLength/2));
         	var rect1 = new paper.Rectangle(new paper.Point(rect.x, rect.y), new paper.Point(rect.x + rect.width, rect.y + rect.height/4));
         	var path = new paper.Path.Rectangle(rect1);
         	path.strokeColor = "black";
         	path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+        	group.addChild(path);
         	var rect2 = new paper.Rectangle(new paper.Point(rect.x, rect.y + rect.height*0.75), new paper.Point(rect.x + rect.width, rect.y + rect.height));
         	var path = new paper.Path.Rectangle(rect2);
         	path.strokeColor = "black";
         	path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+        	group.addChild(path);
 
-        	drawUmschliesst(rect, figures[0], "balken");
+        	group.addChild(drawUmschliesst(rect, figures[0], "balken"));
+
+        	return group;
         }
 
         function drawZwillingsschraegbalken( figures, x, y ) {
@@ -851,6 +969,8 @@ $(document).ready(
         	}
         	var i = 0;
         	var div = 4;
+
+        	var group = new paper.Group();
 
         	var main = new paper.Path();
     		main.add(new paper.Point(x[0], x[1]));
@@ -869,6 +989,7 @@ $(document).ready(
     		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div, x[1]));
     		balken.strokeColor = "black";
     		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+    		group.addChild(balken);
 
     		var balken = new paper.Path();
     		balken.add(new paper.Point(x[0], x[1]+(y[1]-x[1])/div));
@@ -878,8 +999,11 @@ $(document).ready(
     		balken.add(new paper.Point(x[0], x[1]+(y[1]-x[1])/div));
     		balken.strokeColor = "black";
     		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+    		group.addChild(balken);
 
-        	drawUmschliesst(main, figures[0], "schraegbalken");
+        	group.addChild(drawUmschliesst(main, figures[0], "schraegbalken"));
+
+        	return group;
         }
 
         function drawUmschliesst( rect, figure, form ) {
@@ -894,6 +1018,8 @@ $(document).ready(
         		return;
         	}
 
+        	var group = new paper.Group();
+
         	for (var i = 0; i < umschliesstList.length; i++) {
         		var orientation = umschliesstList[i].getAttribute("orientation");
     			// Step 1: Get coordinates and distance of the center axis
@@ -902,7 +1028,8 @@ $(document).ready(
 
     			if(orientation == "in der Bruststelle" && form == "pfahl") {
     				// Only happens with Zwillingspfahl
-    				drawFigur(figs, [rect.x+rect.width*0.25, rect.y+rect.height*0.25-rect.width*0.25], [rect.x+rect.width*0.75, rect.y+rect.height*0.25+rect.width*0.25]);
+    				var fig = drawFigur(figs, [rect.x+rect.width*0.25, rect.y+rect.height*0.25-rect.width*0.25], [rect.x+rect.width*0.75, rect.y+rect.height*0.25+rect.width*0.25]);
+    				group.addChild(fig);
     			}
     			else {
     				// We have to assume multiple figures
@@ -943,37 +1070,62 @@ $(document).ready(
 		        		raster.bounds.width = max;
 		        		raster.bounds.height = max;
 		        		raster.position = new paper.Point(new_x, new_y);
+		        		group.addChild(raster);
         			}
     			}
     		}
+
+    		return group;
         }
 
-        function drawSchraegbalken(figures, x, y) {
+        function drawSchraegbalken(figures, x, y, leiste = false, links = false) {
         	// Create a Schrägbalken
+        	// TODO: The calculating of Leisten is wrong atm. Modifying the drawing to make it work will be pretty hard, 
+        	// so for the moment it will probably be better to simply leave them out (except for Belegung).
         	// TODO: Schräglinksbalken can be achieved by grouping all elements created in this function and mirroring the whole group
+        	var group = new paper.Group();
+
         	if(figures.length % 2 == 1) {
         		if(figures.length > 4) {
         			var div = figures.length*2;
         		}
         		else {
-        			var div = 6;
+        			var div = 8;
+        		}
+        		if(leiste) {
+        			div = div*2;
+        		}
+
+        		var ernMod = 0;
+        		var specialMod = figures[0].getAttribute("special");
+        		if(specialMod == "erniedrigten" || specialMod == "erniedrigter") {
+        			ernMod = 1;
         		}
         		
         		// Create Mittelbalken
         		var balken = new paper.Path();
-        		balken.add(new paper.Point(x[0], x[1]));
-        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div, x[1]));
-        		balken.add(new paper.Point(y[0], x[1]+(y[1]-x[1])/div*(div-1)));
-        		balken.add(new paper.Point(y[0], y[1]));
-        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div*(div-1), y[1]));
-        		balken.add(new paper.Point(x[0], x[1]+(y[1]-x[1])/div));
-        		balken.add(new paper.Point(x[0], x[1]));
+        		balken.add(new paper.Point(x[0], x[1]+((y[1]-x[1])/div)*ernMod));
+        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div-((y[0]-x[0])/div*ernMod), x[1]));
+        		balken.add(new paper.Point(y[0], x[1]+(y[1]-x[1])/div*(div-(1+ernMod))));
+        		balken.add(new paper.Point(y[0], x[1]+(y[1]-x[1])/div*(div-(1*ernMod))));
+        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div*(div-1)+(y[0]-x[0])/div*ernMod, y[1]));
+        		balken.add(new paper.Point(x[0], x[1]+(y[1]-x[1])/div*(1+ernMod)));
+        		balken.add(new paper.Point(x[0], x[1]+((y[1]-x[1])/div)*ernMod));
         		balken.strokeColor = "black";
         		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
-        		drawSchraegbalkenBelegung(balken, figures[0], true);
+        		bele = drawSchraegbalkenBelegung(balken, figures[0], true);
+        		begl = drawFormBegleitung(balken, figures[0], "schraegbalken", x, y);
+        		
+
+        		group.addChild(begl);
+        		group.addChild(bele);
+
+        		group.addChild(balken);
+
         		// Create obere Balken
         		for (var i = 0; i < (figures.length-1)/2; i++) {
+        			if (leiste) i++;
         			var balken = new paper.Path();
 	        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div*((i+1)*3+i), x[1]));
 	        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div*((i+1)*3+i+2), x[1]));
@@ -983,10 +1135,13 @@ $(document).ready(
 	        		balken.strokeColor = "black";
 	        		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
-	        		drawSchraegbalkenBelegung(balken, figures[0]);
+	        		balken = drawSchraegbalkenBelegung(balken, figures[0]);
+
+	        		group.addChild(balken);
         		}
         		// Create untere Balken
         		for (var i = 0; i < (figures.length-1)/2; i++) {
+        			if (leiste) i++;
         			var balken = new paper.Path();
 	        		balken.add(new paper.Point(x[0], x[1]+(y[1]-x[1])/div*((i+1)*3+i)));
 	        		balken.add(new paper.Point(x[0], x[1]+(y[1]-x[1])/div*((i+1)*3+i+2)));
@@ -996,7 +1151,9 @@ $(document).ready(
 	        		balken.strokeColor = "black";
 	        		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
-	        		drawSchraegbalkenBelegung(balken, figures[0]);
+	        		balken = drawSchraegbalkenBelegung(balken, figures[0]);
+
+	        		group.addChild(balken);
         		}
         	}
         	else if(figures.length % 2 == 0) {
@@ -1004,10 +1161,15 @@ $(document).ready(
         			var div = figures.length*2;
         		}
         		else {
-        			var div = 6;
+        			var div = 8;
+        		}
+
+        		if(leiste) {
+        			div = div*2;
         		}
         		// Obere Balken
         		for (var i = 0; i < figures.length/2; i++) {
+        			if (leiste) i++;
         			var balken = new paper.Path();
 	        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div*((i+1)*3+i-2), x[1]));
 	        		balken.add(new paper.Point(x[0]+(y[0]-x[0])/div*((i+1)*3+i), x[1]));
@@ -1017,7 +1179,9 @@ $(document).ready(
 	        		balken.strokeColor = "black";
 	        		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
-	        		drawSchraegbalkenBelegung(balken, figures[0]);
+	        		balken = drawSchraegbalkenBelegung(balken, figures[0]);
+
+	        		group.addChild(balken);
         		}
         		// Untere Balken
         		for (var i = 0; i < figures.length/2; i++) {
@@ -1030,9 +1194,17 @@ $(document).ready(
 	        		balken.strokeColor = "black";
 	        		balken.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
-	        		drawSchraegbalkenBelegung(balken, figures[0]);
+	        		balken = drawSchraegbalkenBelegung(balken, figures[0]);
+
+	        		group.addChild(balken);
         		}
         	}
+
+        	if(links) {
+        		group = group.scale(1, -1);
+        	}
+
+        	return group;
         }
 
         function drawSchraegbalkenBelegung(main, figure, center = false) {
@@ -1067,33 +1239,135 @@ $(document).ready(
         			//console.log(a);
         			var b = [(main.segments[2].point.x + main.segments[4].point.x)/2, (main.segments[2].point.y + main.segments[4].point.y)/2];
     			}
-        		
-        		//console.log(b);
-        		var x = a[0]-b[0];
-        		var y = a[1]-b[1];
-        		var dist = Math.sqrt(x*x + y*y);
-        		// depending on the number of figures
-        		var step = dist/(count+1);
-        		for (var i = 1; i <= count; i++) {
-        			var new_x = a[0]-((step*i)*(a[0]-b[0]))/dist;
-        			var new_y = a[1]-((step*i)*(a[1]-b[1]))/dist;
-        			var new_coord = [new_x, new_y];
-        			var raster = getFigur(fig);
-        			raster.bounds.x = 0;
-	        		raster.bounds.y = 0;
-        			var balkenwidth = main.segments[0].point.x - main.segments[1].point.x;
-        			if(center) {
-        				balkenwidth = balkenwidth * 2;
-        			}
-        			var balkenheight = main.segments[2].point.x - main.segments[3].point.x;
-	        		balkenwidth = Math.sqrt(balkenwidth*balkenwidth);
-	        		balkenheight = Math.sqrt(balkenheight*balkenheight);
-	        		var max = Math.max(balkenwidth, balkenheight)
-	        		raster.bounds.width = max/3;
-	        		raster.bounds.height = max/3;
-	        		raster.position = new paper.Point(new_x, new_y);
+
+    			if(fig.getAttribute("figure") == "Schrägleiste") {
+    				// draw a new Schägbalken but only half as thick as the old one
+    				drawSchraegbalken(belegtList[i].children[0].children, [main.bounds.x, main.bounds.y], [main.bounds.x + main.bounds.width, main.bounds.y + main.bounds.height], true);
+    			}
+    			else if(fig.getAttribute("figure") == "Schräglinksleiste") {
+    				// draw a new Schägbalken but only half as thick as the old one
+    				drawSchraegbalken(belegtList[i].children[0].children, [main.bounds.x, main.bounds.y], [main.bounds.x + main.bounds.width, main.bounds.y + main.bounds.height], true, true);
+    			}
+    			else {
+	    				//console.log(b);
+	        		var x = a[0]-b[0];
+	        		var y = a[1]-b[1];
+	        		var dist = Math.sqrt(x*x + y*y);
+	        		// depending on the number of figures
+	        		var step = dist/(count+1);
+	        		for (var i = 1; i <= count; i++) {
+	        			var new_x = a[0]-((step*i)*(a[0]-b[0]))/dist;
+	        			var new_y = a[1]-((step*i)*(a[1]-b[1]))/dist;
+	        			var new_coord = [new_x, new_y];
+	        			var raster = getFigur(fig);
+	        			raster.bounds.x = 0;
+		        		raster.bounds.y = 0;
+	        			var balkenwidth = main.segments[0].point.x - main.segments[1].point.x;
+	        			if(center) {
+	        				balkenwidth = balkenwidth * 2;
+	        			}
+	        			var balkenheight = main.segments[2].point.x - main.segments[3].point.x;
+		        		balkenwidth = Math.sqrt(balkenwidth*balkenwidth);
+		        		balkenheight = Math.sqrt(balkenheight*balkenheight);
+		        		var max = Math.max(balkenwidth, balkenheight)
+		        		raster.bounds.width = max/3;
+		        		raster.bounds.height = max/3;
+		        		raster.position = new paper.Point(new_x, new_y);
+	        		}
+    			}
+        	}
+        	return group;
+        }
+
+        function drawFormBegleitung(main, figure, form, x, y) {
+        	var begleitetList = [];
+        	for (var i = 0; i < figure.children.length; i++) {
+        		if (figure.children[i].nodeName == "Begleitet") {
+        			begleitetList.push(figure.children[i]);
         		}
         	}
+
+        	if(begleitetList.length < 1) {
+        		return main;
+        	}
+
+        	var group = new paper.Group([main]);
+
+        	for (var i = 0; i < begleitetList.length; i++) {
+        		var orientation = begleitetList[i].getAttribute("orientation");
+
+        		var figs = begleitetList[i].children[0].children;
+    			var count = begleitetList[i].children[0].children.length;
+
+        		if(orientation == "beidseitig") {
+        			if(count == 2) {
+        				var size = (y[0]-x[0])/5;
+        				if(form == "schraegbalken") {
+        					var positions = [
+	        					new paper.Point(x[0] + (y[0]-x[0])*0.75, x[1] + (y[1]-x[1])*0.25),
+	        					new paper.Point(x[0] + (y[0]-x[0])*0.25, x[1] + (y[1]-x[1])*0.75)
+	        					];
+        				}
+        				else if(form == "balken") {
+        					var positions = [
+	        					new paper.Point(x[0] + (y[0]-x[0])*0.5, x[1] + (y[1]-x[1])*0.2),
+	        					new paper.Point(x[0] + (y[0]-x[0])*0.5, x[1] + (y[1]-x[1])*0.8)
+	        					];
+        				}
+        				else if(form == "pfahl") {
+        					var positions = [
+	        					new paper.Point(x[0] + (y[0]-x[0])*0.2, x[1] + (y[1]-x[1])*0.5),
+	        					new paper.Point(x[0] + (y[0]-x[0])*0.8, x[1] + (y[1]-x[1])*0.5)
+	        					];
+        				}
+        				for (var i = 0; i < count; i++) {
+        					var raster = getFigur(figs[i]);
+        					raster.bounds.width = size;
+        					raster.bounds.height = size;
+        					raster.bounds.center = positions[i];
+
+        					group.addChild(raster);
+        				}
+        			}
+        		}
+        		else if(orientation == "unten") {
+        			if(form == "sparren") {
+						var raster = drawFigur(
+							figs, 
+							[x[0] + (y[0]-x[0])*0.25, x[1] + (y[1]-x[1])*0.4], 
+							[x[0] + (y[0]-x[0])*0.75, y[1]]);
+						group.addChild(raster);        				
+        			}
+        			else if(form == "sparren-ern") {
+						var raster = drawFigur(
+							figs, 
+							[x[0] + (y[0]-x[0])*0.25, x[1] + (y[1]-x[1])*0.6], 
+							[x[0] + (y[0]-x[0])*0.75, y[1]]);
+						group.addChild(raster);        				
+        			}
+        			else if(form == "balken") {
+						var raster = drawFigur(
+							figs, 
+							[x[0] + (y[0]-x[0])*0.25, x[1] + (y[1]-x[1])*0.6], 
+							[x[0] + (y[0]-x[0])*0.75, y[1]]);
+						group.addChild(raster);        				
+        			}
+        		}
+        		else if(orientation == "oben") {
+        			if(form == "balken") {
+        				var raster = drawFigur(
+							figs, 
+							[x[0] + (y[0]-x[0])*0.25, x[1]], 
+							[x[0] + (y[0]-x[0])*0.75, y[1] - (y[1]-x[1])*0.6]);
+						group.addChild(raster);
+        			}
+        		}
+        		else {
+        			console.log("No valid orientation for FormBegleitung");
+        		}
+
+        	}
+
         	return group;
         }
 
@@ -1121,8 +1395,12 @@ $(document).ready(
         	cross.strokeColor = "black";
         	cross.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
+        	var group = new paper.Group([cross]);
+
         	// Draw Begleitung and Bewinklung
-        	drawKreuzBewinklung(cross, figures);
+        	group.addChild(drawKreuzBewinklung(cross, figures));
+
+        	return group;
         }
 
         function drawKreuzBewinklung(main, figures) {
@@ -1135,6 +1413,8 @@ $(document).ready(
         		}
         	}
 
+        	var group = new paper.Group();
+
         	if(bewinkelt != false) {
 	        	var seg = main.segments;
 	        	var upleftBounds = new paper.Rectangle(seg[0].point, seg[10].point);
@@ -1146,9 +1426,129 @@ $(document).ready(
 	        	var subfigures = bewinkelt.children[0].children;
 
 	        	for (var i = 0; i < subfigures.length; i++) {
-	        		drawFigur([subfigures[i]], [boundaries[i].topLeft.x, boundaries[i].topLeft.y], [boundaries[i].bottomRight.x, boundaries[i].bottomRight.y]);
+	        		var fig = drawFigur([subfigures[i]], [boundaries[i].topLeft.x, boundaries[i].topLeft.y], [boundaries[i].bottomRight.x, boundaries[i].bottomRight.y]);
+	        		group.addChild(fig);
 	        	}
         	}
+
+        	return group;
+        }
+
+        function drawSparren(figures, x, y) {
+        	var group = new paper.Group();
+
+        	var count = figures.length;
+
+        	var width = (y[1]-x[1])/(count*3);
+
+        	var ernMod = 0;
+    		var specialMod = figures[0].getAttribute("special");
+    		if(specialMod == "erniedrigte" || specialMod == "erniedrigter") {
+    			ernMod = count*0.65; // If this value gets changed, also change
+    								 // the value in drawFormBegleitung!
+    		}
+
+        	for (var i = 0; i < count; i++) {
+        		var sparren = new paper.Path();
+	        	sparren.add(new paper.Point(x[0]+(y[0]-x[0])/2, x[1]+width*(i*2+ernMod)));
+	        	sparren.add(new paper.Point(y[0], x[1]+width*(count+1+i*2)));
+				sparren.add(new paper.Point(y[0], x[1]+width*(count+2+i*2)));
+				sparren.add(new paper.Point(x[0]+(y[0]-x[0])/2, x[0]+width*(1+i*2+ernMod)));
+				sparren.add(new paper.Point(x[0], x[1]+width*(count+2+i*2)));
+				sparren.add(new paper.Point(x[0], x[1]+width*(count+1+i*2)));
+				sparren.add(new paper.Point(x[0]+(y[0]-x[0])/2, x[1]+width*(i*2+ernMod)));
+				sparren.strokeColor = "black";
+	        	sparren.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+	        	sparren = drawSparrenBelegung(sparren, figures[i])
+	        	group.addChild(sparren);
+        	}
+
+        	// there should only be one Begleitung per FGroup.
+   			// Might be possible that this needs to go somewhere else later
+   			if(ernMod != 0) {
+   				group = drawFormBegleitung(group, figures[0], "sparren-ern", x, y);
+   			}
+   			else {
+   				group = drawFormBegleitung(group, figures[0], "sparren", x, y);
+   			}
+        	
+        	
+        	return group
+        }
+
+        function drawSparrenBelegung(main, figure, center = false) {
+        	var belegtList = [];
+        	for (var i = 0; i < figure.children.length; i++) {
+        		if (figure.children[i].nodeName == "Belegt") {
+        			belegtList.push(figure.children[i]);
+        		}
+        	}
+
+        	if(belegtList.length < 1) {
+        		return main;
+        	}
+
+        	var group = new paper.Group([main]);
+        	
+        	for (var i = 0; i < belegtList.length; i++) {
+        		var orientation = belegtList[i].getAttribute("orientation");
+    			var fig = belegtList[i].children[0].children[0];
+    			var count = belegtList[i].children[0].children.length;
+
+    			var balkenheight = main.segments[1].point.y - main.segments[2].point.y;
+        		var max = Math.sqrt(balkenheight*balkenheight);
+
+        		var giebel = [main.segments[0].point.x, (main.segments[0].point.y + main.segments[3].point.y)/2]
+
+    			// 1. Draw Giebel-Element (falls geradezahlig)
+    			if(count % 2 == 1) {
+    				var raster = getFigur(fig);
+	    			raster.bounds.x = 0;
+		        	raster.bounds.y = 0;
+		        	raster.bounds.width = max*0.4;
+		        	raster.bounds.height = max*0.4;
+		        	raster.bounds.center = new paper.Point(giebel[0], giebel[1]);
+
+		        	group.addChild(raster);
+    			}
+
+	        	// 2. Draw left, then right
+	        	function drawLeftRight(left, n) {
+	        		if(left) {
+	    				var a = [(main.segments[0].point.x + main.segments[3].point.x)/2, (main.segments[0].point.y + main.segments[3].point.y)/2]
+	        			//console.log(a);
+	        			var b = [(main.segments[4].point.x + main.segments[5].point.x)/2, (main.segments[4].point.y + main.segments[5].point.y)/2];
+	    			}
+	    			else {
+	    				var a = [(main.segments[0].point.x + main.segments[3].point.x)/2, (main.segments[0].point.y + main.segments[3].point.y)/2]
+	        			//console.log(a);
+	        			var b = [(main.segments[1].point.x + main.segments[2].point.x)/2, (main.segments[1].point.y + main.segments[2].point.y)/2];
+	    			}
+
+	        		var x = a[0]-b[0];
+	        		var y = a[1]-b[1];
+	        		var dist = Math.sqrt(x*x + y*y);
+	        		// depending on the number of figures
+	        		var step = dist/(n+1);
+	        		for (var i = 1; i <= n; i++) {
+	        			var new_x = a[0]-((step*i)*(a[0]-b[0]))/dist;
+	        			var new_y = a[1]-((step*i)*(a[1]-b[1]))/dist;
+	        			var new_coord = [new_x, new_y];
+	        			var raster = getFigur(fig);
+	        			raster.bounds.x = 0;
+		        		raster.bounds.y = 0;
+		        		raster.bounds.width = max*0.4;
+		        		raster.bounds.height = max*0.4;
+		        		raster.position = new paper.Point(new_x, new_y);
+
+		        		group.addChild(raster);
+	        		}
+	        	}
+
+	        	drawLeftRight(true, count % 2 == 1 ? (count-1)/2 : count/2);
+	        	drawLeftRight(false, count % 2 == 1 ? (count-1)/2 : count/2);
+        	}
+        	return group;
         }
 
         const colorsToCodes = {

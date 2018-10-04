@@ -87,7 +87,7 @@ haupt_1 = "unter 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildhaupt(, d
 sub_figur_pattern = "(\
 (?P<ObenUnten> (der|die|das) (obere(n)?|rechte(n)?) (belegt|besetzt|bewinkelt|begleitet|überdeckt) (von|mit)( je)? \d, (der|die|das) (untere(n)?|linke(n)?) (mit|von) .*?)|\
 (?P<Besetzt>.*? besetzt mit .*?)|\
-(?P<Spezial2>.*?haltend(, diese .*?)?)|\
+(?P<Spezial2>.*?haltend(, dies(es|e|er) .*?)?)|\
 (?P<Belegt>.*? belegt mit( je)? .*?)|\
 (?P<Bewinkelt> bewinkelt von .*?)|(?P<Umschliesst>.*? umschließend)|\
 (?P<Begleitet>.*? begleitet von( je)? .*?)|\
@@ -96,7 +96,7 @@ sub_figur_pattern = "(\
 
 sub_figur_pattern2 = "(\
 (?P<ObenUnten2> (der|die|das) (obere(n)?|rechte(n)?) (belegt|besetzt|bewinkelt|begleitet|überdeckt) (von|mit)( je)? \d, (der|die|das) (untere(n)?|linke(n)?) (mit|von) .*?)|\
-(?P<Besetzt2>.*? besetzt mit .*?)|(?P<Spezial3>.*?haltend(, diese .*?)?)|\
+(?P<Besetzt2>.*? besetzt mit .*?)|(?P<Spezial3>.*?haltend(, dies(es|e|er) .*?)?)|\
 (?P<Belegt3>.*? belegt mit .*?)|\
 (?P<Bewinkelt2> bewinkelt von .*?)|(?P<Umschliesst2>.*? umschließend)|(?P<Begleitet2>.*?begleitet von( je)? .*?)|\
 (?P<ÜberdecktSingle2> überdeckt von .*)\
@@ -109,7 +109,7 @@ figur_pattern = "(?P<Anzahl>[1-9])(?P<FormationSingle2> (\d:)+\d gestellt(en|e|e
 (?P<VerwechselteTinkturen> in verwechselte(n|r) Tinktur(en)?)?\
 (?P<Spezial5> mit .*?)?\
 (?P<Position> an (der|die|das) \S+)?\
-(?P<FormationSingle> ({1}))?(,( diese)?{2}( und{3})?)?$".format(COLORS_ADJ_OPTIONS, FORMATION_OPTIONS, sub_figur_pattern, sub_figur_pattern2, FORMATION_OPTIONS)
+(?P<FormationSingle> ({1}))?(,( dies(es|e|er))?{2}( und{3})?)?$".format(COLORS_ADJ_OPTIONS, FORMATION_OPTIONS, sub_figur_pattern, sub_figur_pattern2, FORMATION_OPTIONS)
 
 # Multiple Groups
 fgroups_pattern = "((?P<Figur3>{2}, )?(?P<Figur2>{1} und ))?(?P<BasisFigur>{0})(?P<Formation>, ({3}|(\d:)+\d gestellt))?$".format(figur_pattern[:-1], figur_pattern[:-1], figur_pattern[:-1], FORMATION_OPTIONS)
@@ -122,7 +122,7 @@ uncountable_pattern = "(?P<FormationSingle2>(\d:)+\d gestellt(en|e|er))?(?P<Spez
 (?P<VerwechselteTinkturen> in verwechselte(n|r) Tinktur(en)?)?\
 (?P<Spezial5> mit .*?)?\
 (?P<Position> an (der|die|das) \S+)?\
-(?P<FormationSingle> ({1}))?(,( diese)?{2}( und{3})?)?$".format(COLORS_ADJ_OPTIONS, FORMATION_OPTIONS, sub_figur_pattern, sub_figur_pattern2, FORMATION_OPTIONS)
+(?P<FormationSingle> ({1}))?(,( dies(es|e|er))?{2}( und{3})?)?$".format(COLORS_ADJ_OPTIONS, FORMATION_OPTIONS, sub_figur_pattern, sub_figur_pattern2, FORMATION_OPTIONS)
 
 
 def convert(line):
