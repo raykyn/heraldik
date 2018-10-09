@@ -165,7 +165,7 @@ def analyze_field(parent, field):
         feld = match.group("Feld")
         belegt = match.group("Belegt")
         bord = et.SubElement(parent, "Bord", layout="ledig")
-        et.SubElement(bord, "Farbe", value=COLORS_ADJ[color])
+        et.SubElement(bord, "Farbe", value=color)
         if belegt:
             add_belegt(bord, belegt)
         analyze_field(parent, feld)
@@ -197,7 +197,7 @@ def analyze_field(parent, field):
         figur = match.group("Figur")
         cover = match.group("Überdeckt")
         new_field = et.SubElement(parent, "Feld", layout="ledig")
-        et.SubElement(new_field, "Farbe", value=COLORS_ADJ[color])
+        et.SubElement(new_field, "Farbe", value=color)
         analyze_figure(new_field, figur)
         if cover:
             add_cover(new_field, cover)
@@ -226,7 +226,7 @@ def analyze_field(parent, field):
         match = re.match(felder_1_ledig_2, field)
         color = match.group(1)
         new_field = et.SubElement(parent, "Feld", layout="ledig")
-        et.SubElement(new_field, "Farbe", value=COLORS_ADJ[color])
+        et.SubElement(new_field, "Farbe", value=color)
     elif re.match(felder_X_1, field):
         match = re.match(felder_X_1, field)
         color1 = match.group("Farbe1")

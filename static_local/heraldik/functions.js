@@ -97,7 +97,7 @@ $(document).ready(
             		drawFeld(fieldNode, [(x[0] + step * i), x[1]], [x[0] + step * (i+1), y[1]]);
             	}
             }
-            else if(layout = "schräggeteilt") {
+            else if(layout == "schräggeteilt") {
             	var count = 1;
             	var fields = [];
             	for (var i = 0; i < node.children.length; i++) {
@@ -385,10 +385,10 @@ $(document).ready(
         	}
         	else if (figureName == "Stern" || figureName == "Sterne" || figureName == "Sternen") {
         		var special = figures.getAttribute("special");
-        		if(special == "achtstrahlig" || special == "achtstrahlige" || special == "achtstrahligen") {
+        		if(special == "achtstrahlig" || special == "achtstrahlige" || special == "achtstrahligen" || special == "achtstrahliger") {
         			var star = createStern(8);
         		}
-        		else if(special == "sechsstrahlig" || special == "sechsstrahlige" || special == "sechsstrahligen") {
+        		else if(special == "sechsstrahlig" || special == "sechsstrahlige" || special == "sechsstrahligen" || special == "sechsstrahliger") {
         			var star = createStern(6);
         		}
         		else {
@@ -1678,9 +1678,29 @@ $(document).ready(
 	        {
 	        	$.get("solution", {}).done(
 	        		function(data) {
+	        			current_coa = data;
 	        			$("#exampleShield").attr("src", data.link);
 	        		}
 	        	);
+	        }
+        );
+
+        $("#getclue").click( function()
+	        {
+	        	if(current_coa.clue.length > 0) {
+	        		alert(current_coa.clue);
+	        	}
+	        	else {
+	        		alert("Kein Tipp für dieses Wappen.");
+	        	}
+	        }
+        );
+
+        $("#getSource").click( function()
+	        {
+	       		alert("Dies ist das Wappen der Familie "+
+	       			current_coa.info+
+	       			".\n\nQuelle: http://wappen.khi.fi.it");
 	        }
         );
     }
