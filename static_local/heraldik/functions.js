@@ -1703,5 +1703,67 @@ $(document).ready(
 	       			".\n\nQuelle: http://wappen.khi.fi.it");
 	        }
         );
+
+        $("#getSolution").click( function() {
+        	
+        	var blaz = $("textarea#blasonierung").val();
+            if(blaz.length > 0) {
+            	$.get("output", { input: blaz, }).done(
+                function(data) {
+                    console.log(data);
+                    console.log(current_coa.solution)
+                    checkSolution(data);
+            	});
+            }
+        });
+
+        function checkSolution( data ) {
+        	// iterate both trees parallel
+        	parser = new DOMParser();
+            testDoc = parser.parseFromString( data , "text/xml" );
+            solDoc = parser.parseFromString( current_coa.solution , "text/xml" );
+            var solNode = solDoc.documentElement;
+            var testNode = testDoc.documentElement;
+            var correct = checkNode(solNode, testNode, true);
+            if(correct) {
+            	alert("Korrekte Blasonierung!");
+            }
+        }
+
+        function checkNode(solNode, testNode, correct) {
+        	// check 1. tag
+        	// check 2. attributes
+        	// check 3. children (recursive)
+        	var solTag = solNode.tagName;
+        	var testTag = testNode.tagName;
+        	if(solTag != testTag) {
+        		alert("Das Element "+testTag+" sollte eigentlich ein Element "+solTag+" sein.")
+        		correct = false;
+        	}
+        	else {
+				for (var i = 0; i < solNode.attributes.length; i++) {
+					var solValue = solNode.attributes[i].value;
+					var solAtName = solNode.attributes[i].name;
+					var testValue = testNode.attributes[solAtName].value;
+					if(solValue != testValue) {
+						alert("Die Eigenschaft "+solAtName+" beim Element "
+							+solTag+" ist nicht korrekt.\n"+
+							"Deine Angabe: "+testValue
+							+"\nLösung: "+solValue);
+						correct = false;
+					}
+				}
+        		if(testNode.children.length != solNode.children.length) {
+	        		alert("Die Anzahl Elemente in/bei/neben/auf dem Element "+solTag+" ist nicht korrekt.");
+	        		correct = false;
+	        	}
+	        	for (var i = 0; i < solNode.children.length; i++) {
+	        		if(testNode.children[i]) {
+	        			correct = checkNode(solNode.children[i], testNode.children[i], correct);
+	        		}
+	        	}
+        	}
+        	return correct;
+        }
     }
 );

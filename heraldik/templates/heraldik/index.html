@@ -15,29 +15,38 @@
         <div id="headerContainer">
             <h2>Blasonierungsübung</h2>
         </div>
-        <div id="userinputContainer">
-            <div id="gibblason-div">
-                <p id="gibblason">Gib Deine Blasonierung hier ein:</p>
+        <div>
+            <div id="userinputContainer">
+                <div id="gibblason-div">
+                    <p id="gibblason">Gib Deine Blasonierung hier ein:</p>
+                </div>
+                <div id="textarea-div">
+                    <textarea id="blasonierung" autofocus></textarea> 
+                </div>
+                
             </div>
-            <div id="textarea-div">
-                <textarea id="blasonierung" autofocus></textarea> 
+            
+            
+            <div id="drawingContainer">
+                <canvas id="myCanvas"></canvas>
             </div>
+            
+            
+            <div id="exampleContainer">
+                <div id="exampleShield-div">
+                    <!-- <img id="exampleShield" src="{% static 'heraldik/images/example.jpg' %}"/> -->
+                    <img id="exampleShield" src="http://wappen.khi.fi.it/Plone/bilder/thumbs/flb000001_0155.jpg/image"/>
+                </div>
+                
+            </div>
+        </div>
+        <div id="buttonContainer">
             <div id="updateBlaz-div">
-                <button id="updateBlaz">Überprüfe Blasonierung</button>
+                <button id="updateBlaz">Aktualisiere Blasonierung</button>
                 <button id="getclue">Tipp</button>
             </div>
-        </div>
-        
-        
-        <div id="drawingContainer">
-            <canvas id="myCanvas"></canvas>
-        </div>
-        
-        
-        <div id="exampleContainer">
-            <div id="exampleShield-div">
-                <!-- <img id="exampleShield" src="{% static 'heraldik/images/example.jpg' %}"/> -->
-                <img id="exampleShield" src="http://wappen.khi.fi.it/Plone/bilder/thumbs/flb000001_0155.jpg/image"/>
+            <div id="solution-div">
+                <button id="getSolution">Kontrolle</button>
             </div>
             <div id="getRandomShieldButton-div">
                 <button id="getRandomShieldButton">Neue Aufgabe</button>

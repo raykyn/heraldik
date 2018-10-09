@@ -208,6 +208,7 @@ def analyze_field(parent, field):
         feld2 = match.group("Feld2")
         #~ covering = match.group("Überdeckt")
         new_field = et.SubElement(parent, "Feld", layout=sep)
+        male = et.SubElement(new_field, "Male", value="1")
         analyze_field(new_field, feld1)
         analyze_field(new_field, feld2)
         #~ if covering:
