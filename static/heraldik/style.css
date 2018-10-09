@@ -46,6 +46,18 @@ body {
     position: relative;
 }
 
+#buttonContainer {
+    height: 8%;
+    width: 97.5%;
+    background-color: lightgrey;
+    display: inline-block;
+    padding: 0.5%;
+    margin: 0.5%;
+    border-radius: 25px;
+    position: relative;
+
+}
+
 #myCanvas {
     width: 80%;
     height: 80%;
@@ -84,10 +96,20 @@ textarea {
 
 #updateBlaz {
     height: 90%;
-    width: 90%;
+    width: 70%;
     position: absolute;
     top: 5%;
     left: 5%;
+    right: 5%;
+    bottom: 5%;
+}
+
+#getclue {
+    height: 90%;
+    width: 20%;
+    position: absolute;
+    top: 5%;
+    left: 75%;
     right: 5%;
     bottom: 5%;
 }
@@ -105,15 +127,15 @@ textarea {
     top: 20%;
     left: 10%;
     right: 10%;
-    bottom: 20%;
+    bottom: 10%;
 }
 
 #updateBlaz-div {
     position: absolute;
-    top: 80%;
-    left: 10%;
-    right: 10%;
-    bottom: 10%;
+    top: 5%;
+    left: 2%;
+    right: 70%;
+    bottom: 5%;
 }
 
 #exampleShield-div {
@@ -121,23 +143,61 @@ textarea {
     top: 10%;
     left: 10%;
     right: 10%;
-    bottom: 20%;
+    bottom: 10%;
 }
 
 #getRandomShieldButton-div {
     position: absolute;
-    top: 80%;
-    left: 10%;
-    right: 10%;
-    bottom: 10%;
+    top: 5%;
+    left: 70%;
+    right: 2%;
+    bottom: 5%;
 }
 
 #getRandomShieldButton {
     height: 90%;
-    width: 90%;
+    width: 75%;
     position: absolute;
     top: 5%;
-    left: 5%;
+    left: 0%;
     right: 5%;
+    bottom: 5%;
+}
+
+#getSource {
+    height: 90%;
+    width: 25%;
+    position: absolute;
+    top: 5%;
+    left: 75%;
+    right: 0%;
+    bottom: 5%;
+}
+
+#solution-div {
+    position: absolute;
+    top: 5%;
+    left: 35%;
+    right: 35%;
+    bottom: 5%;
+}
+
+#getControl {
+    height: 90%;
+    width: 40%;
+    position: absolute;
+    top: 5%;
+    left: 10%;
+    right: 60%;
+    bottom: 5%;
+}
+
+#getSolution {
+    height: 90%;
+    width: 40%;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    right: 20%;
     bottom: 5%;
 }

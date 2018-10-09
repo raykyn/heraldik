@@ -2,12 +2,12 @@ $(document).ready(
     function(){
         
         var canvas = document.getElementById("myCanvas");
-	paper.setup(canvas);
+		paper.setup(canvas);
         var maxSize = Math.min(canvas.style.width, canvas.style.height);
         var center = canvas.center;
 
-	var finalDrawWidth = canvas.style.width.slice(0, -2) > 0 ? canvas.style.width.slice(0, -2) :  canvas.width;
-	var finalDrawHeight = canvas.style.height.slice(0, -2) > 0 ? canvas.style.height.slice(0, -2) : canvas.height;
+		var finalDrawWidth = canvas.style.width.slice(0, -2) > 0 ? canvas.style.width.slice(0, -2) :  canvas.width;
+		var finalDrawHeight = canvas.style.height.slice(0, -2) > 0 ? canvas.style.height.slice(0, -2) : canvas.height;
         
         function csx (s) {
             //~ scale an int to the relative size to the canvas width
@@ -96,6 +96,50 @@ $(document).ready(
             		var fieldNode = fields[i % 2]
             		drawFeld(fieldNode, [(x[0] + step * i), x[1]], [x[0] + step * (i+1), y[1]]);
             	}
+            }
+            else if(layout == "schräggeteilt") {
+            	var count = 1;
+            	var fields = [];
+            	for (var i = 0; i < node.children.length; i++) {
+            		if(node.children[i].nodeName == "Male") {
+            			count = parseInt(node.children[i].getAttribute("value"));
+            		}
+            		else if (node.children[i].nodeName == "Feld") {
+            			fields.push(node.children[i]);
+            		}
+            	}
+            	//console.log(fields);
+            	// Split the field into count fields
+            	var xstep = (y[0]-x[0]) / ((count+1)/2);
+            	var ystep = (y[1]-x[1]) / ((count+1)/2);
+            	for (var i = 0; i < (count+1)/2; i++) {
+            		var fieldNode = fields[i % 2]
+            		var color = getColors(fieldNode)
+
+            		var path = new paper.Path();
+            		path.add(new paper.Point(y[0]-xstep*i, x[1]));
+            		path.add(new paper.Point(y[0], x[1]+ystep*i));
+            		path.add(new paper.Point(y[0], x[1]+ystep*(i+1)));
+            		path.add(new paper.Point(y[0]-xstep*(i+1), x[1]));
+            		path.add(new paper.Point(y[0]-xstep*i, x[1]));
+            		path.strokeColor = "black";
+                	path.fillColor = color[0];
+            	}
+            	for (var i = 0; i < (count+1)/2; i++) {
+            		var fieldNode = fields[(i+1) % 2]
+            		var color = getColors(fieldNode)
+
+            		var path = new paper.Path();
+            		path.add(new paper.Point(x[0]+xstep*i, y[1]));
+            		path.add(new paper.Point(x[0], y[1]-ystep*i));
+            		path.add(new paper.Point(x[0], y[1]-ystep*(i+1)));
+            		path.add(new paper.Point(x[0]+xstep*(i+1), y[1]));
+            		path.add(new paper.Point(x[0]+xstep*i, y[1]));
+            		path.strokeColor = "black";
+                	path.fillColor = color[0];
+            	}
+
+            	// TODO: Make it possible to draw FGroups inside the fields
             }
             else if(layout == "geviert") {
             	var fields = [];
@@ -290,14 +334,8 @@ $(document).ready(
         	return hochkreuz;
         }
 
-        function createSternAchtstrahlig() {
-        	var star = new paper.Path.Star(new paper.Point(-100, -100), 8, 50, 30);
-
-        	return star;
-        }
-
-        function createSternFuenfstrahlig() {
-        	var star = new paper.Path.Star(new paper.Point(-100, -100), 5, 50, 20);
+        function createStern(strahlen) {
+        	var star = new paper.Path.Star(new paper.Point(-100, -100), strahlen, 50, 25);
 
         	return star;
         }
@@ -347,12 +385,14 @@ $(document).ready(
         	}
         	else if (figureName == "Stern" || figureName == "Sterne" || figureName == "Sternen") {
         		var special = figures.getAttribute("special");
-        		if(special == "achtstrahlig" || special == "achtstrahlige" || special == "achtstrahligen") {
-        			var star = createSternAchtstrahlig();
-        			
+        		if(special == "achtstrahlig" || special == "achtstrahlige" || special == "achtstrahligen" || special == "achtstrahliger") {
+        			var star = createStern(8);
+        		}
+        		else if(special == "sechsstrahlig" || special == "sechsstrahlige" || special == "sechsstrahligen" || special == "sechsstrahliger") {
+        			var star = createStern(6);
         		}
         		else {
-        			var star = createSternFuenfstrahlig();
+        			var star = createStern(5);
         		}
         		star.strokeColor = "black";
     			star.fillColor = colorsToCodes[figures.getAttribute("color")];
@@ -836,6 +876,7 @@ $(document).ready(
         		path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
 
         		path = drawFormBegleitung(path, figures[0], "pfahl", x, y);
+        		path = drawPfahlBelegung(path, figures[0]);
 
         		group.addChild(path);
         	}
@@ -846,7 +887,9 @@ $(document).ready(
         			var rect = new paper.Rectangle(new paper.Point((pfahlSteps * (i+1)) + x[0] - pfahlLength/2 - (pfahlLength / 2), x[1]), new paper.Point((pfahlSteps * (i+1)) + x[0] - pfahlLength/2 + (pfahlLength / 2), y[1]));
         			var path = new paper.Path.Rectangle(rect);
         			path.strokeColor = "black";
-        			path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+        			path.fillColor = colorsToCodes[figures[i].getAttribute("color")];
+
+        			path = drawPfahlBelegung(path, figures[i]);
 
         			group.addChild(path);
         		}
@@ -858,12 +901,57 @@ $(document).ready(
         			var rect = new paper.Rectangle(new paper.Point((pfahlSteps * (i+1)) + x[0] - pfahlLength/2 - (pfahlLength / 2), x[1]), new paper.Point((pfahlSteps * (i+1)) + x[0] - pfahlLength/2 + (pfahlLength / 2), y[1]));
         			var path = new paper.Path.Rectangle(rect);
         			path.strokeColor = "black";
-        			path.fillColor = colorsToCodes[figures[0].getAttribute("color")];
+        			path.fillColor = colorsToCodes[figures[i].getAttribute("color")];
+
+        			path = drawPfahlBelegung(path, figures[i]);
 
         			group.addChild(path);
         		}
         	}
 
+        	return group;
+        }
+
+        function drawPfahlBelegung(main, figure) {
+        	var belegtList = [];
+        	for (var i = 0; i < figure.children.length; i++) {
+        		if (figure.children[i].nodeName == "Belegt") {
+        			belegtList.push(figure.children[i]);
+        		}
+        	}
+        	if(belegtList.length < 1) {
+        		return main;
+        	}
+        	var group = new paper.Group([main]);
+        	for (var i = 0; i < belegtList.length; i++) {
+        		var orientation = belegtList[i].getAttribute("orientation");
+    			// Step 1: Get coordinates and distance of the center axis
+    			var fig = belegtList[i].children[0].children[0];
+    			var count = belegtList[i].children[0].children.length;
+				var a = [(main.segments[2].point.x + main.segments[1].point.x)/2, (main.segments[2].point.y + main.segments[1].point.y)/2]
+    			var b = [(main.segments[0].point.x + main.segments[3].point.x)/2, (main.segments[0].point.y + main.segments[3].point.y)/2];;
+        		var x = a[0]-b[0];
+        		var y = a[1]-b[1];
+        		var dist = Math.sqrt(x*x + y*y);
+        		// depending on the number of figures
+        		var step = dist/(count+1);
+        		for (var i = 1; i <= count; i++) {
+        			var new_x = a[0]-((step*i)*(a[0]-b[0]))/dist;
+        			var new_y = a[1]-((step*i)*(a[1]-b[1]))/dist;
+        			var new_coord = [new_x, new_y];
+        			var raster = getFigur(fig);
+        			raster.bounds.x = 0;
+	        		raster.bounds.y = 0;
+        			var balkenwidth = main.segments[1].point.x - main.segments[2].point.x;
+        			var balkenheight = main.segments[2].point.x - main.segments[3].point.x;
+	        		balkenwidth = Math.sqrt(balkenwidth*balkenwidth);
+	        		balkenheight = Math.sqrt(balkenheight*balkenheight);
+	        		var max = Math.max(balkenwidth, balkenheight)
+	        		raster.bounds.width = max*0.8;
+	        		raster.bounds.height = max*0.8;
+	        		raster.position = new paper.Point(new_x, new_y);
+        		}
+        	}
         	return group;
         }
 
@@ -1584,5 +1672,107 @@ $(document).ready(
                 }
             }
         );
+
+        var current_coa;
+        $("#getRandomShieldButton").click( function()
+	        {
+	        	$.get("solution", {}).done(
+	        		function(data) {
+	        			current_coa = data;
+	        			$("#exampleShield").attr("src", data.link);
+	        		}
+	        	);
+	        }
+        );
+
+        $("#getclue").click( function()
+	        {
+	        	if(current_coa.clue.length > 0) {
+	        		alert(current_coa.clue);
+	        	}
+	        	else {
+	        		alert("Kein Tipp für dieses Wappen.");
+	        	}
+	        }
+        );
+
+        $("#getSource").click( function()
+	        {
+	       		alert("Dies ist das Wappen der Familie "+
+	       			current_coa.info+
+	       			".\n\nQuelle: http://wappen.khi.fi.it");
+	        }
+        );
+
+        $("#getSolution").click( function() {
+        	if(!current_coa) {
+        		return 
+        	}
+        	alert(current_coa.blazon);
+        });
+
+        $("#getControl").click( function() {
+        	if(!current_coa) {
+        		return 
+        	}
+        	var blaz = $("textarea#blasonierung").val();
+            if(blaz.length > 0) {
+            	$.get("output", { input: blaz, }).done(
+                function(data) {
+                    console.log(data);
+                    console.log(current_coa.solution)
+                    checkSolution(data);
+            	});
+            }
+        });
+
+        function checkSolution( data ) {
+        	// iterate both trees parallel
+        	parser = new DOMParser();
+            testDoc = parser.parseFromString( data , "text/xml" );
+            solDoc = parser.parseFromString( current_coa.solution , "text/xml" );
+            var solNode = solDoc.documentElement;
+            var testNode = testDoc.documentElement;
+            var correct = checkNode(solNode, testNode, true);
+            if(correct) {
+            	alert("Korrekte Blasonierung!");
+            }
+        }
+
+        function checkNode(solNode, testNode, correct) {
+        	// check 1. tag
+        	// check 2. attributes
+        	// check 3. children (recursive)
+        	var solTag = solNode.tagName;
+        	var testTag = testNode.tagName;
+        	if(solTag != testTag) {
+        		alert("Das Element "+testTag+" sollte eigentlich ein Element "+solTag+" sein.")
+        		correct = false;
+        	}
+        	else {
+				for (var i = 0; i < solNode.attributes.length; i++) {
+					var solValue = solNode.attributes[i].value;
+					var solAtName = solNode.attributes[i].name;
+					var testValue = testNode.attributes[solAtName].value;
+					if(solValue != testValue) {
+						alert("Die Eigenschaft "+solAtName+" beim Element "
+							+solTag+" ist nicht korrekt.\n"+
+							"Deine Angabe: "+testValue
+							+"\nLösung: "+solValue);
+						correct = false;
+					}
+				}
+        		if(testNode.children.length != solNode.children.length) {
+	        		alert("Die Anzahl Elemente in/bei/neben/auf dem Element "+solTag+" ist nicht korrekt.");
+	        		correct = false;
+	        	}
+	        	for (var i = 0; i < solNode.children.length; i++) {
+	        		if(testNode.children[i]) {
+	        			correct = checkNode(solNode.children[i], testNode.children[i], correct);
+	        		}
+	        	}
+        	}
+        	return correct;
+        }
     }
 );
