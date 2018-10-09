@@ -182,12 +182,22 @@ textarea {
     bottom: 5%;
 }
 
-#getSolution {
+#getControl {
     height: 90%;
-    width: 60%;
+    width: 40%;
     position: absolute;
     top: 5%;
-    left: 20%;
+    left: 10%;
+    right: 60%;
+    bottom: 5%;
+}
+
+#getSolution {
+    height: 90%;
+    width: 40%;
+    position: absolute;
+    top: 5%;
+    left: 50%;
     right: 20%;
     bottom: 5%;
 }

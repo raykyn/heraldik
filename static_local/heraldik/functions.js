@@ -1705,7 +1705,16 @@ $(document).ready(
         );
 
         $("#getSolution").click( function() {
-        	
+        	if(!current_coa) {
+        		return 
+        	}
+        	alert(current_coa.blazon);
+        });
+
+        $("#getControl").click( function() {
+        	if(!current_coa) {
+        		return 
+        	}
         	var blaz = $("textarea#blasonierung").val();
             if(blaz.length > 0) {
             	$.get("output", { input: blaz, }).done(
