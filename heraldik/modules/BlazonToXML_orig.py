@@ -71,7 +71,7 @@ felder_2_ledig_1 = "({0})-({1}) ({2})".format(COLORS, COLORS, SEPARATIONS_1)
 # [Teilung]: oben/rechts/vorne [feld], unten/links/hinten [feld]
 felder_2_ledig_2 = "(?P<Teilung>{0}): (oben|rechts|vorne) (?P<Feld1>.*?), (unten|links|hinten) (?P<Feld2>.*?)$".format(SEPARATIONS_1)
 # [Anzahl]mal [Farbe1]-[Farbe2] [Teilung]
-felder_X_1 = "(?P<Anzahl>[1-9])mal (?P<Farbe1>{0})-(?P<Farbe2>{1}) (?P<Teilung>{2})(?P<Überdeckt> und überdeckt von .*?)?$".format(COLORS, COLORS, SEPARATIONS_1)
+felder_X_1 = "(?P<Anzahl>[1-9])mal (?P<Farbe1>{0})-(?P<Farbe2>{1}) (?P<Teilung>{2})(?P<Überdeckt>(,| und) überdeckt von .*?)?$".format(COLORS, COLORS, SEPARATIONS_1)
 # [Farbe1]-[Farbe2] geviert
 felder_4_1 = "(?P<Farbe1>{0})-(?P<Farbe2>{1}) (?P<Teilung>{2})".format(COLORS, COLORS, SEPARATIONS_2)
 
@@ -81,7 +81,7 @@ bord_1 = "innerhalb 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildbords,
 
 ## HAUPT IDENTIFIKATION
 # unter 1 [Belegt]? [Farbe] Schildhaupt, [darin [Figuren],]?, [Feld]
-haupt_1 = "unter 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildhaupt(, darin (?P<Figur>.*?))?, (?P<Feld>.*?)$".format(COLORS_ADJ_OPTIONS)
+haupt_1 = "unter 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildhaupt(, darin (?P<Figur>.*?))?,? (?P<Feld>.*?)$".format(COLORS_ADJ_OPTIONS)
 
 ## FIGUR_IDENTIFIKATION
 sub_figur_pattern = "(\
@@ -89,7 +89,7 @@ sub_figur_pattern = "(\
 (?P<Besetzt>.*? besetzt mit .*?)|\
 (?P<Spezial2>.*?haltend(, dies(es|e|er) .*?)?)|\
 (?P<Belegt>.*? belegt mit( je)? .*?)|\
-(?P<Bewinkelt> bewinkelt von .*?)|(?P<Umschliesst>.*? umschließend)|\
+(?P<Bewinkelt> bewinkelt von .*?)|(?P<Umschliesst>.*? umschliessend)|\
 (?P<Begleitet>.*? begleitet von( je)? .*?)|\
 (?P<ÜberdecktSingle> überdeckt von .*)\
 )"
@@ -98,7 +98,7 @@ sub_figur_pattern2 = "(\
 (?P<ObenUnten2> (der|die|das) (obere(n)?|rechte(n)?) (belegt|besetzt|bewinkelt|begleitet|überdeckt) (von|mit)( je)? \d, (der|die|das) (untere(n)?|linke(n)?) (mit|von) .*?)|\
 (?P<Besetzt2>.*? besetzt mit .*?)|(?P<Spezial3>.*?haltend(, dies(es|e|er) .*?)?)|\
 (?P<Belegt3>.*? belegt mit .*?)|\
-(?P<Bewinkelt2> bewinkelt von .*?)|(?P<Umschliesst2>.*? umschließend)|(?P<Begleitet2>.*?begleitet von( je)? .*?)|\
+(?P<Bewinkelt2> bewinkelt von .*?)|(?P<Umschliesst2>.*? umschliessend)|(?P<Begleitet2>.*?begleitet von( je)? .*?)|\
 (?P<ÜberdecktSingle2> überdeckt von .*)\
 )"
 
@@ -165,7 +165,7 @@ def analyze_field(parent, field):
         feld = match.group("Feld")
         belegt = match.group("Belegt")
         bord = et.SubElement(parent, "Bord", layout="ledig")
-        et.SubElement(bord, "Farbe", value=color)
+        et.SubElement(bord, "Farbe", value=COLORS_ADJ[color])
         if belegt:
             add_belegt(bord, belegt)
         analyze_field(parent, feld)
@@ -176,7 +176,7 @@ def analyze_field(parent, field):
         feld = match.group("Feld")
         belegt = match.group("Belegt")
         head = et.SubElement(parent, "Haupt", design="", layout="ledig")
-        et.SubElement(head, "Farbe", value=color)
+        et.SubElement(head, "Farbe", value=COLORS_ADJ[color])
         if belegt:
             add_belegt(head, belegt)
         if content:
@@ -197,7 +197,7 @@ def analyze_field(parent, field):
         figur = match.group("Figur")
         cover = match.group("Überdeckt")
         new_field = et.SubElement(parent, "Feld", layout="ledig")
-        et.SubElement(new_field, "Farbe", value=color)
+        et.SubElement(new_field, "Farbe", value=COLORS_ADJ[color])
         analyze_figure(new_field, figur)
         if cover:
             add_cover(new_field, cover)
@@ -226,7 +226,7 @@ def analyze_field(parent, field):
         match = re.match(felder_1_ledig_2, field)
         color = match.group(1)
         new_field = et.SubElement(parent, "Feld", layout="ledig")
-        et.SubElement(new_field, "Farbe", value=color)
+        et.SubElement(new_field, "Farbe", value=COLORS_ADJ[color])
     elif re.match(felder_X_1, field):
         match = re.match(felder_X_1, field)
         color1 = match.group("Farbe1")
@@ -487,7 +487,7 @@ def add_begleitet(parent, content):
         
 def add_umschliesst(parent, content):
     content = content
-    match = re.match("(?P<Figur>.*?)(?P<Position>( in .*?)?) umschließend?$", content)
+    match = re.match("(?P<Figur>.*?)(?P<Position>( in .*?)?) umschliessend?$", content)
     if match:
         orientation = match.group("Position")
         if orientation:
@@ -512,7 +512,7 @@ def add_bewinkelt(parent, content):
 def add_belegt(parent, content):
     content = content
     match = re.match("(?P<Orientierung>.*?) belegt mit( je)? (?P<Figur>.*?)$", content)
-    match2 = re.match(" mit (?P<Figur>.*?) belegt(er|en|e|es)$", content)
+    match2 = re.match(" mit( je)? (?P<Figur>.*?) belegt(er|en|e|es)$", content)
     if match:
         orientation = match.group("Orientierung")
         if orientation:
