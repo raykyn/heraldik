@@ -81,7 +81,7 @@ bord_1 = "innerhalb 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildbords,
 
 ## HAUPT IDENTIFIKATION
 # unter 1 [Belegt]? [Farbe] Schildhaupt, [darin [Figuren],]?, [Feld]
-haupt_1 = "unter 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildhaupt(, darin (?P<Figur>.*?))?,? (?P<Feld>.*?)$".format(COLORS_ADJ_OPTIONS)
+haupt_1 = "unter 1(?P<Belegt> mit .*? belegten)? (?<Farbe>{0})en Schildhaupt(, darin (?P<Figur>.*?),)? (?P<Feld>.*?)$".format(COLORS_ADJ_OPTIONS)
 
 ## FIGUR_IDENTIFIKATION
 sub_figur_pattern = "(\
