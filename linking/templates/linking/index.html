@@ -1,0 +1,83 @@
+{% load static %}
+
+<meta charset="utf-8">
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'linking/style.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{% static 'linking/functions.js' %}"></script>
+    <title>linking</title>
+</head> 
+
+
+<body>
+    <div id="allContainer">
+        <div id="leftContainer">
+            <div id="inputContainer">
+                <textarea id="xmlinputfield" autofocus></textarea>
+                <input id="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
+                <button id="run">Start</button>
+            </div>
+            <div id="controlsContainer">
+                <div class="row">
+                    <div class="col">
+                        <div id="smaller">
+                            <table>
+                                <tr>
+                                    <td class="ctrlTitle" colspan="2">Füge Normalisierte Namen hinzu</td>
+                                </tr>
+                                <tr>
+                                    <td>Historisch:</td>
+                                    <td>Modern:</td>
+                                </tr>
+                                <tr>
+                                    <td><input class="addNorm" id="origIn" type="text" name="origIn"></td>
+                                    <td><input class="addNorm" id="normIn" type="text" name="normIn"></td>
+                                </tr>
+                                <tr>
+                                    <td><button id="addNorm">Speichern</button></td>
+                                    <td><button id="reload">Neu suchen</button></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button class="ctrl" id="skip">Überspringen</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div id="smaller">
+                            <table>
+                                <tr>
+                                    <td class="ctrlTitle" colspan="4">Melde fehlenden Eintrag</td>
+                                </tr>
+                                <tr>
+                                    <td>Urkunde:</td>
+                                    <td><input class="missingEntry" id="documentEntry" type="text" name="documentEntry"></td>
+                                    <td>Link (optional):</td>
+                                    <td><input class="missingEntry" id="refLinkEntry" type="text" name="refLink"></td>
+                                </tr>
+                                <tr>
+                                    <td>Gemeldet von:</td>
+                                    <td><input class="missingEntry" id="submittedByEntry" type="text" name="submittedBy"></td>
+                                    <td colspan="2"><button id="missingEntry">Melden</button></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <img src="https://upload.wikimedia.org/wikipedia/de/8/89/Universit%C3%A4t_Z%C3%BCrich_logo.svg" height="90%" width="90%"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="rightContainer">
+            <div id="contextContainer">
+                <h3 id="fullstring"/>
+                <h5 id="signalList"/>
+            </div>
+            <div id="foundEntryContainer">
+            </div>
+        </div>
+    </div>
+</body>

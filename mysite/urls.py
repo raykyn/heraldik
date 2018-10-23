@@ -18,5 +18,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('heraldik/', include('heraldik.urls')),    
+    path('linking/', include('linking.urls')),    
     path('admin/', admin.site.urls),
 ]
