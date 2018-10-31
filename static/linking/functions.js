@@ -32,14 +32,14 @@ $(document).ready(
         }
 
         function processTag(curr) {
-            $.get("getCandidates", { input: JSON.stringify(curr), all_tags: JSON.stringify(name_tags)}).done(
+            $.post("getCandidates/", { input: JSON.stringify(curr), all_tags: JSON.stringify(name_tags)}).done(
             function(data) {
                 getNorms(data, curr);
             });
         }
 
         function getNorms(origNames, curr) {
-            $.get("getNormalizedNames", { input: JSON.stringify(origNames) }).done(
+            $.post("getNormalizedNames/", { input: JSON.stringify(origNames) }).done(
             function(data) {
                 getPossibleRefs(origNames, data, curr);
             });
@@ -52,7 +52,7 @@ $(document).ready(
             $("#fullstring").text(full);
             $("#signalList").text(joined);
 
-            $.get("getRefCandidates", { 
+            $.post("getRefCandidates/", { 
                 input: JSON.stringify(joined), 
                 pubyear: pubyear,
                 past_names: JSON.stringify(all_past_names),
@@ -175,9 +175,8 @@ $(document).ready(
 
         function modifyXML() {
             //console.log(chosen_refs);
-            $.get("changeXML", { origXML: xml, refDict: JSON.stringify(chosen_refs) }).done(
+            $.post("changeXML/", { origXML: xml, refDict: JSON.stringify(chosen_refs) }).done(
                 function (data) {
-                    console.log(data)
                     $("textarea#xmlinputfield").val(data);
                 }
             );
@@ -222,17 +221,15 @@ $(document).ready(
 
         $("#run").click( function()
             {
-                setStandard();
-
+		setStandard();
                 xml = $("textarea#xmlinputfield").val();
                 pubyear = $("input#pubyear").val();
                 if(pubyear == "") {
                     pubyear = 0;
                 }
                 if(xml.length > 0) {
-                    $.get("getNameTags", { input: xml, }).done(
+                    $.post("getNameTags/", { input: xml, }).done(
                     function(data) {
-                        //console.log(data);
                         name_tags = data;
                         for (var i = 0; i < name_tags.results.length; i++) {
                             var curr = name_tags.results[i];

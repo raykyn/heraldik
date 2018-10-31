@@ -8,34 +8,38 @@ import json
 
 class IndexView(generic.TemplateView):
     template_name = "linking/index.html"
-    
+   
+@csrf_exempt
 def changeXML(request):
     """
     Get ref_dict and original xml.
     Return modified xml.
     """
     if request.is_ajax():
-        mod_xml = change_XML(request.GET.get("origXML", None), request.GET.get("refDict", None))
+        mod_xml = change_XML(request.POST.get("origXML", None), request.POST.get("refDict", None))
         return HttpResponse(mod_xml)
 
+@csrf_exempt
 def getNameTags(request):
     """
     Get XML-String.
     Return a list of all tagged text to link.
     """
     if request.is_ajax():
-        names = getNames(request.GET.get("input", None))
+        names = getNames(request.POST.get("input", None))
         return JsonResponse(names)
 
+@csrf_exempt
 def getCandidates(request):
     """
     Get tag dict.
     Return list of candidates.
     """
     if request.is_ajax():
-        candidates = getCand(request.GET.get("input", None), request.GET.get("all_tags", None))
+        candidates = getCand(request.POST.get("input", None), request.POST.get("all_tags", None))
         return JsonResponse(candidates)
 
+@csrf_exempt
 def getNormalizedNames(request):
     """
     Get list of names.
@@ -44,19 +48,20 @@ def getNormalizedNames(request):
     """
     if request.is_ajax():
         norm_names = []
-        orig_names = json.loads(request.GET.get("input", None))
+        orig_names = json.loads(request.POST.get("input", None))
         for name in orig_names["results"]:
             norms = NormEntry.objects.filter(orig_name=name)
             norm_names.extend([x.norm() for x in norms])
         return JsonResponse({"results": norm_names})
 
+@csrf_exempt
 def getRefCandidates(request):
     if request.is_ajax():
-        names = json.loads(request.GET.get("input", None))
-        pubyear = int(request.GET.get("pubyear", None))
-        past_names = json.loads(request.GET.get("past_names", None))
-        past_ids = json.loads(request.GET.get("past_ids", None))
-        attrType = request.GET.get("type", None)
+        names = json.loads(request.POST.get("input", None))
+        pubyear = int(request.POST.get("pubyear", None))
+        past_names = json.loads(request.POST.get("past_names", None))
+        past_ids = json.loads(request.POST.get("past_ids", None))
+        attrType = request.POST.get("type", None)
         if attrType == "person":
             hits = get_persons(names, pubyear, past_names, past_ids)
         elif attrType == "place":
