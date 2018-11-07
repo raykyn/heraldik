@@ -45,12 +45,16 @@ $(document).ready(
             });
         }
 
+        var helperTempSearch;
+
         function getPossibleRefs(data, norm_names, curr) {
+            helperTempSearch = [data, norm_names, curr];
+            console.log(helperTempSearch);
             var full = curr.string.join("").replace("¬","");
             var joined = data.results.concat(norm_names.results);
             var asString = joined.join(", ");
             $("#fullstring").text(full);
-            $("#signalList").text(joined);
+            $("#signalList").text(asString);
 
             $.post("getRefCandidates/", { 
                 input: JSON.stringify(joined), 
@@ -219,34 +223,34 @@ $(document).ready(
             }
         });
 
-        $("#run").click( function()
-            {
-		setStandard();
-                xml = $("textarea#xmlinputfield").val();
-                pubyear = $("input#pubyear").val();
-                if(pubyear == "") {
-                    pubyear = 0;
-                }
-                if(xml.length > 0) {
-                    $.post("getNameTags/", { input: xml, }).done(
-                    function(data) {
-                        name_tags = data;
-                        for (var i = 0; i < name_tags.results.length; i++) {
-                            var curr = name_tags.results[i];
-                            if(filterTag(curr)) {
-                                current_tag = i;
-                                processTag(curr);
-                                break;
-                            }
-                            else {
-                                for (var j = 0; j < name_tags.results[current_tag].tag.length; j++) {
-                                    name_tags.results[current_tag].tag[j]["ref"] = null;
-                                }
-                                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                            }
+        $("#run").click( function() {
+    		setStandard();
+            cleanCandWindows();
+            xml = $("textarea#xmlinputfield").val();
+            pubyear = $("input#pubyear").val();
+            if(pubyear == "") {
+                pubyear = 0;
+            }
+            if(xml.length > 0) {
+                $.post("getNameTags/", { input: xml, }).done(
+                function(data) {
+                    name_tags = data;
+                    for (var i = 0; i < name_tags.results.length; i++) {
+                        var curr = name_tags.results[i];
+                        if(filterTag(curr)) {
+                            current_tag = i;
+                            processTag(curr);
+                            break;
                         }
-                    });
-                }
+                        else {
+                            for (var j = 0; j < name_tags.results[current_tag].tag.length; j++) {
+                                name_tags.results[current_tag].tag[j]["ref"] = null;
+                            }
+                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                        }
+                    }
+                });
+            }
             }
         );
 
@@ -274,6 +278,19 @@ $(document).ready(
             }
             $(".missingEntry").val("");
             $.post("submitMissingEntry/", { context: string, doc: doc, ref: refLink, author: subBy });
+        });
+
+        $("#addTempSignal").click( function() {
+            var toAdd = $("#tempSignalEntry").val();
+            if(toAdd == "") {
+                return
+            }
+            $("#tempSignalEntry").val("");
+            var split_toAdd = toAdd.split(",");
+            console.log(split_toAdd);
+            helperTempSearch[1].results = helperTempSearch[1].results.concat(split_toAdd);
+            cleanCandWindows();
+            getPossibleRefs(helperTempSearch[0], helperTempSearch[1], helperTempSearch[2]);
         });
     }
 );

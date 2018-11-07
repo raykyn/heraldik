@@ -63,6 +63,7 @@ body {
     width: 96%;
     height: 16%;
     background-color: teal;
+    overflow-y: scroll;
 }
 
 #foundEntryContainer {
@@ -145,4 +146,12 @@ table {
 
 .ctrlTitle {
     text-decoration: underline;
+}
+
+#addTempSignal {
+    width: 25%;
+}
+
+#tempSignalEntry {
+    width: 25%;
 }
