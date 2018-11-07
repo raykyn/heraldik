@@ -42,7 +42,7 @@ def change_XML(xml, ref_dict):
                 custom.append(this_string)
         custom = ' '.join(custom)
         tl.set("custom", custom)
-    return et.tostring(root, encoding="latin1")
+    return et.tostring(root, encoding="utf8")
 
 
 def get_organizations(names, past_names, past_ids):
