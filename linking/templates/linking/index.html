@@ -5,6 +5,21 @@
     <link rel="stylesheet" type="text/css" href="{% static 'linking/style.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{% static 'linking/functions.js' %}"></script>
+    <script>
+        function openInput(evt, inputName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(inputName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
     <title>linking</title>
 </head> 
 
@@ -13,10 +28,30 @@
     <div id="allContainer">
         <div id="leftContainer">
             <div id="inputContainer">
-                <textarea id="xmlinputfield" autofocus></textarea>
-                <input id="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
-                <button id="run">Start</button>
+                <div class="tab">
+                  <button class="tablinks" onclick="openInput(event, 'pageXML')">PageXML</button>
+                  <button class="tablinks" onclick="openInput(event, 'tei')">TEI</button>
+                  <button class="tablinks" onclick="openInput(event, 'transkribus')">Transkribus</button>
+                </div>
+
+                <div id="pageXML" class="tabcontent">
+                    <textarea id="xmlinputfield" autofocus></textarea>
+                    <input id="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
+                    <button id="run">Start</button>
+                </div>
+
+                <div id="tei" class="tabcontent" style="display: none">
+                    <textarea id="xmlinputfield" autofocus></textarea>
+                    <input id="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
+                    <button id="run">Start</button>
+                </div>
+
+                <div id="transkribus" class="tabcontent" style="display: none">
+                    <p> placeholder </p>
+                    <button id="run">Start</button>
+                </div>
             </div>
+
             <div id="controlsContainer">
                 <div class="row">
                     <div class="col">

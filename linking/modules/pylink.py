@@ -187,82 +187,90 @@ def get_persons(names, year, past_names, past_ids):
             print("Querying for {} returned an error.".format(n))
                         
     print("Sent second request: " + ",".join(list(person_ids)))
-    person_info = requests.get("https://www.ssrq-sds-fds.ch/persons-db-api/?id_search_det={}".format(",".join(list(person_ids))))
-    print("Got second request")
-    if person_info.status_code == requests.codes.ok and person_info.text != "null":
-        person_info = person_info.json()
-        for found in person_info:
-            person_dict = {}
-            person_dict["orgs"] = []
-            person_dict["birth"] = []
-            person_dict["death"] = []
-            person_dict["role"] = []
-            person_dict["gen"] = []
-            person_dict["fname"] = []
-            person_dict["remark"] = []
-            person_dict["fmention"] = []
-            person_dict["points"] = 0
-            
-            # Fill the dict with all the entries we found
-            for entry in found["details"]:
-                for key, value in entry.items():
-                    if key in ["id", "lang", "org_id", "type", "occ"]:
-                        continue
-                    elif key == "surname":
-                        person_dict["orgs"].append(value)
-                    elif key == "forename":
-                        person_dict["fname"].append(value)
-                    elif key == "birth":
-                        person_dict["birth"].append(value)
-                    elif key == "role":
-                        person_dict["role"].append(value)
-                    elif key == "genname":
-                        person_dict["gen"].append(value)
-                    elif key == "death":
-                        person_dict["death"].append(value)
-                    elif key == "first_mention":
-                        person_dict["fmention"].append(value)
-            
-            # look for them orgs! :D
-            # filter persons out who are born after the document was created
-            if year is not None:
-                earliest = get_first_mention_or_birth(person_dict, year)
-                if earliest is None:
-                    person_dict["year_diff"] = 100
-                else:
-                    earliest_date = int(earliest[1])
-                    person_dict["earliest_date"] = earliest_date
-                    um = earliest[0]
-                    if um:
-                        umyear = year + 10
-                    else:
-                        umyear = year
-                    if earliest_date > umyear:
-                        continue
-                    elif earliest_date < umyear:
-                        person_dict["year_diff"] = umyear - earliest_date
-                    else:
-                        person_dict["year_diff"] = 0
+    person_ids = list(person_ids)
+    # cut the request into multiple requests if it's too long
+    chunks = [person_ids[x:x+500] for x in range(0, len(person_ids), 500)]
+    
+    all_person_info = []
+    
+    for ch in chunks:
+        person_info = requests.get("https://www.ssrq-sds-fds.ch/persons-db-api/?id_search_det={}".format(",".join(list(ch))))
+        print("Got second request")
+        if person_info.status_code == requests.codes.ok and person_info.text != "null":
+            person_info = person_info.json()
+            all_person_info.extend(person_info)
+        else: # couldnt find key in db
+            print("Person IDs {} could not be found in DB".format(",".join(list(ch))))
+    
+    for found in all_person_info:
+        person_dict = {}
+        person_dict["orgs"] = []
+        person_dict["birth"] = []
+        person_dict["death"] = []
+        person_dict["role"] = []
+        person_dict["gen"] = []
+        person_dict["fname"] = []
+        person_dict["remark"] = []
+        person_dict["fmention"] = []
+        person_dict["points"] = 0
+        
+        # Fill the dict with all the entries we found
+        for entry in found["details"]:
+            for key, value in entry.items():
+                if key in ["id", "lang", "org_id", "type", "occ"]:
+                    continue
+                elif key == "surname":
+                    person_dict["orgs"].append(value)
+                elif key == "forename":
+                    person_dict["fname"].append(value)
+                elif key == "birth":
+                    person_dict["birth"].append(value)
+                elif key == "role":
+                    person_dict["role"].append(value)
+                elif key == "genname":
+                    person_dict["gen"].append(value)
+                elif key == "death":
+                    person_dict["death"].append(value)
+                elif key == "first_mention":
+                    person_dict["fmention"].append(value)
+        
+        # look for them orgs! :D
+        # filter persons out who are born after the document was created
+        if year is not None:
+            earliest = get_first_mention_or_birth(person_dict, year)
+            if earliest is None:
+                person_dict["year_diff"] = 100
             else:
-                person_dict["year_diff"] = 0
-            
-            for org in person_dict["orgs"]:
-                for n in set(names):
-                    if n == str(org):
-                        person_dict["points"] += 1
-                for n in past_names:
-                    if n == str(org):
-                        person_dict["points"] += 0.1
+                earliest_date = int(earliest[1])
+                person_dict["earliest_date"] = earliest_date
+                um = earliest[0]
+                if um:
+                    umyear = year + 10
+                else:
+                    umyear = year
+                if earliest_date > umyear:
+                    continue
+                elif earliest_date < umyear:
+                    person_dict["year_diff"] = umyear - earliest_date
+                else:
+                    person_dict["year_diff"] = 0
+        else:
+            person_dict["year_diff"] = 0
+        
+        for org in person_dict["orgs"]:
+            for n in set(names):
+                if n == str(org):
+                    person_dict["points"] += 1
+            for n in past_names:
+                if n == str(org):
+                    person_dict["points"] += 0.1
 
-            clean_id = found["@ID"].replace("http://ssrq-sds-fds.ch/Register/#", "") # replace link if not necessary
-            if clean_id in past_ids:
-                person_dict["points"] += 1
-                
-            person_dict["id"] = clean_id
-            primary_hits.append(person_dict)
+        clean_id = found["@ID"].replace("http://ssrq-sds-fds.ch/Register/#", "") # replace link if not necessary
+        if clean_id in past_ids:
+            person_dict["points"] += 1
             
-    else: # couldnt find key in db
-        print("Person ID {} could not be found in DB".format(person_id))
+        person_dict["id"] = clean_id
+        primary_hits.append(person_dict)
 
     primary_hits = sorted(primary_hits, key=lambda k: (k['points'], -1*k['year_diff']), reverse=True)
     
