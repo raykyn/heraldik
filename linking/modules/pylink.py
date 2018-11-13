@@ -312,11 +312,14 @@ def get_places(names, past_names, past_ids):
         print("Sent second request " + place_id)
         place_info = requests.get("https://www.ssrq-sds-fds.ch/places-db-edit/views/get-info.xq?id={}".format(place_id))
         print("Got second request")
-        if place_info.status_code == requests.codes.ok and place_info.text != "null":
+        if place_info.status_code == requests.codes.ok and place_info.text != "null" and place_info.json() != []:
             place_info = place_info.json()
             place_dict = {}
             place_dict["id"] = place_id
-            place_dict["name"] = [place_info["stdName"]["#text"]]
+            try:
+                place_dict["name"] = [place_info["stdName"]["#text"]]
+            except:
+                place_dict["name"] = ["No name found"]
             place_dict["location"] = [place_info["location"]]
             if type(place_info["type"]) == str:
                 place_dict["type"] = [place_info["type"]]
