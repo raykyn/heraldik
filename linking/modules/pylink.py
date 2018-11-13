@@ -236,9 +236,9 @@ def get_persons(names, year, past_names, past_ids):
         
         # look for them orgs! :D
         # filter persons out who are born after the document was created
-        if year is not None:
+        if int(year) != 0:
             earliest = get_first_mention_or_birth(person_dict, year)
-            if earliest is None:
+            if earliest is None or earliest == 0:
                 person_dict["year_diff"] = 100
             else:
                 earliest_date = int(earliest[1])

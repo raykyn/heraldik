@@ -49,7 +49,6 @@ $(document).ready(
 
         function getPossibleRefs(data, norm_names, curr) {
             helperTempSearch = [data, norm_names, curr];
-            console.log(helperTempSearch);
             var full = curr.string.join("").replace("¬","");
             var joined = data.results.concat(norm_names.results);
             var asString = joined.join(", ");
