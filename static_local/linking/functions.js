@@ -1,6 +1,8 @@
 $(document).ready(
     function(){
 
+        var sessionID;
+
         var mode = "pageXML";
 
         var all_past_names = [];
@@ -309,11 +311,50 @@ $(document).ready(
         $("#TKlogin").click( function() {
             usr = $("#username").val();
             pass = $("#pass").val();
-            $.post("https://transkribus.eu/TrpServer/rest/auth/login", { user: usr, pw: pass }).done (
+            $.post("login_transkribus/", { user: usr, pw: pass }).done(
                 function(data) {
-                    console.log(data);
+                    parser = new DOMParser();
+                    xmlDoc = parser.parseFromString(data,"text/xml");
+                    sessionID = xmlDoc.getElementsByTagName("sessionId")[0].childNodes[0].nodeValue;
+                    $.post("getCollectionList/", { sid: sessionID }).done(
+                        function(data) {
+                            var cont = $('#coll_select')[0];
+                            while(cont.firstChild) {
+                                cont.removeChild(cont.firstChild);
+                            }
+                            for (var i = 0; i < data["results"].length; i++) {
+                                colID = data["results"][i]["colId"];
+                                colName = data["results"][i]["colName"];
+                                new_option = $('<option value="'+colID+'">'+colName+'</option>');
+                                $('#coll_select').append(new_option);
+                            }
+                        }
+                    );
                 }
             );
         });
+
+        $('#coll_select').on('change', function(evt, params) {
+            colID = $('#coll_select').val();
+            $.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
+                function(data) {
+
+                    var cont = $('#doc_select')[0];
+                    while(cont.firstChild) {
+                        cont.removeChild(cont.firstChild);
+                    }
+                    for (var i = 0; i < data["results"].length; i++) {
+                        docID = data["results"][i]["pageId"];
+                        docName = data["results"][i]["title"];
+                        new_option = $('<option value="'+docID+'">'+docName+'</option>');
+                        $('#doc_select').append(new_option);
+                    }
+                }
+            );
+        });
+
+
+        // TODO: ONCHANGE doc_select => set xml to the pageXML content
+        // Will probably need a page select as well :-(
     }
 );

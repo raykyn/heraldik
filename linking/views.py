@@ -4,6 +4,7 @@ from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 from .models import NormEntry, MissingEntry
 from .modules.pylink import getNames, getCand, get_persons, get_places, get_organizations, change_XML
+from .modules.transkribusConnect import login, getCollections, getDocuments
 import json
 
 class IndexView(generic.TemplateView):
@@ -90,4 +91,27 @@ def submitMissingEntry(request):
         new = MissingEntry(context=string, doc=document, ref=reflink, author=author)
         new.save()
     return JsonResponse({"":""})
+    
+    
+@csrf_exempt
+def login_transkribus(request):
+    if request.is_ajax():
+        usr = request.POST.get("user", None)
+        pw = request.POST.get("pw", None)
+        data = login(usr, pw)
+        return HttpResponse(data)
+    
+    
+@csrf_exempt
+def getCollectionList(request):
+    if request.is_ajax():
+        collectionList = getCollections(request.POST.get("sid", None))
+        return JsonResponse({"results": collectionList})
+        
+    
+@csrf_exempt
+def getDocumentList(request):
+    if request.is_ajax():
+        docList = getDocuments(request.POST.get("sid", None), request.POST.get("colID", None))
+        return JsonResponse({"results": docList})
 
