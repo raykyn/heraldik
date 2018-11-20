@@ -50,6 +50,10 @@ $(document).ready(
         function getPossibleRefs(data, norm_names, curr) {
             helperTempSearch = [data, norm_names, curr];
             var full = curr.string.join("").replace("¬","");
+            if(full == "") {
+                skip();
+                return;
+            }
             var joined = data.results.concat(norm_names.results);
             var asString = joined.join(", ");
             $("#fullstring").text(full);
@@ -185,7 +189,7 @@ $(document).ready(
             );
         }
 
-        $("#skip").click( function() {
+        function skip() {
             for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
                 name_tags.results[current_tag].tag[i]["ref"] = null;
             }
@@ -220,7 +224,9 @@ $(document).ready(
                     }
                 }
             }
-        });
+        }
+
+        $("#skip").click( function() {skip()} );
 
         $("#run").click( function() {
     		setStandard();
