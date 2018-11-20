@@ -3,8 +3,8 @@
 <meta charset="utf-8">
 <head>
     <link rel="stylesheet" type="text/css" href="{% static 'linking/style.css' %}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="{% static 'linking/functions.js' %}"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'linking/functions.js' %}"></script>
     <script>
         function openInput(evt, inputName) {
             var i, tabcontent, tablinks;
@@ -35,20 +35,37 @@
                 </div>
 
                 <div id="pageXML" class="tabcontent">
-                    <textarea id="xmlinputfield" autofocus></textarea>
-                    <input id="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
-                    <button id="run">Start</button>
+                    <textarea id="xmlinputfield" class="xmlinputfield" autofocus></textarea>
+                    <input id="pubyear" class="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
+                    <button class="run" id="runPXML">Start</button>
                 </div>
 
                 <div id="tei" class="tabcontent" style="display: none">
-                    <textarea id="xmlinputfield" autofocus></textarea>
-                    <input id="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
-                    <button id="run">Start</button>
+                    <textarea id="xmlinputfieldTEI" class="xmlinputfield" autofocus></textarea>
+                    <input id="pubyearTEI" class="pubyear" type="number" name="pubyear" step="1" min="0" max="2000">
+                    <button class="run" id="runTEI">Start</button>
                 </div>
 
                 <div id="transkribus" class="tabcontent" style="display: none">
-                    <p> placeholder </p>
-                    <button id="run">Start</button>
+                    <table>
+                        <td>
+                            <tr>
+                                <td><label for="username">Username:</label></td>
+                                <td><input type="text" id="username" name="username"></td> 
+                            </tr>
+                            <tr>
+                                <td><label for="pass">Password:</label></td>
+                                <td><input type="password" id="pass" name="password"></td>
+                            </tr>
+                            <tr>
+                                <td><button class="login" id="TKlogin">Login</button></td>
+                            </tr>
+                            <tr>
+                                <td><input id="pubyearTK" class="pubyear" type="number" name="pubyear" step="1" min="0" max="2000"></td>
+                                <td><button class="run" id="runTK">Start</button></td>
+                            </tr>
+                        </td>
+                    </table>
                 </div>
             </div>
 

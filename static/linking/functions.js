@@ -1,6 +1,8 @@
 $(document).ready(
     function(){
 
+        var mode = "pageXML";
+
         var all_past_names = [];
         var already_chosen_ids = [];
         var name_tags;
@@ -228,11 +230,17 @@ $(document).ready(
 
         $("#skip").click( function() {skip()} );
 
-        $("#run").click( function() {
+        $(".run").click( function() {
     		setStandard();
             cleanCandWindows();
-            xml = $("textarea#xmlinputfield").val();
-            pubyear = $("input#pubyear").val();
+            mode = $(this)[0].id;
+            if(mode == "runPXML") {
+                xml = $("textarea#xmlinputfield").val();
+                pubyear = $("input#pubyear").val();
+            }
+            else {
+                return;
+            }
             if(pubyear == "") {
                 pubyear = 0;
             }
@@ -296,6 +304,16 @@ $(document).ready(
             helperTempSearch[1].results = helperTempSearch[1].results.concat(split_toAdd);
             cleanCandWindows();
             getPossibleRefs(helperTempSearch[0], helperTempSearch[1], helperTempSearch[2]);
+        });
+
+        $("#TKlogin").click( function() {
+            usr = $("#username").val();
+            pass = $("#pass").val();
+            $.post("https://transkribus.eu/TrpServer/rest/auth/login", { user: usr, pw: pass }).done (
+                function(data) {
+                    console.log(data);
+                }
+            );
         });
     }
 );
