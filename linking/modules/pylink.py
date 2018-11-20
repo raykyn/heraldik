@@ -343,8 +343,11 @@ def getCand(curr, complete_tags):
     tagattr = tag[0]["attr"]
     full_search = []
     for i in range(len(tag)):
-        expan_str = solve_abbrevs(string[i], tag[i], complete_tags["results"])
-        full_search.append(expan_str)
+        if "offset" in tag[i]:
+            expan_str = solve_abbrevs(string[i], tag[i], complete_tags["results"])
+            full_search.append(expan_str)
+        else:
+            print("Malformed tag: "+str(tag))
     expan_str = ' '.join(full_search)
     expan_str = solve_line_breaks(expan_str)
     signal_words = [w.rstrip(",.!?") for w in expan_str.split() if w[0].isupper()]
@@ -387,10 +390,14 @@ def get_tagged_str(taginfo, line):
     """
     this_type = taginfo.attr
     if this_type in ["person", "organization", "place"]:
-        offset = taginfo.offset
-        length = taginfo.length
-        string = line[int(offset):int(offset)+int(length)]
-        return (taginfo), string
+        if hasattr(taginfo,"offset") and hasattr(taginfo,"length"):
+            offset = taginfo.offset
+            length = taginfo.length
+            string = line[int(offset):int(offset)+int(length)]
+            return (taginfo), string
+        else:
+            print("Malformed Tag: "+str(taginfo))
+            return (taginfo), ""
     else:
         return (taginfo), ""
         
