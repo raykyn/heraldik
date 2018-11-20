@@ -11,7 +11,7 @@ urlpatterns = [
     path('submitNorm/', views.submitNorm, name='submitNorm'),
     path('changeXML/', views.changeXML, name='changeXML'),
     path('submitMissingEntry/', views.submitMissingEntry, name='submitMissingEntry'),
-    path('login_transkribus/', views.login_transkribus, name='login_transkribus'),
+    path('loginTranskribus/', views.loginTranskribus, name='loginTranskribus'),
     path('getCollectionList/', views.getCollectionList, name='getCollectionList'),
     path('getDocumentList/', views.getDocumentList, name='getDocumentList'),
     

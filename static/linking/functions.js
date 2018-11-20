@@ -311,7 +311,7 @@ $(document).ready(
         $("#TKlogin").click( function() {
             usr = $("#username").val();
             pass = $("#pass").val();
-            $.post("login_transkribus/", { user: usr, pw: pass }).done(
+            $.post("loginTranskribus/", { user: usr, pw: pass }).done(
                 function(data) {
                     parser = new DOMParser();
                     xmlDoc = parser.parseFromString(data,"text/xml");

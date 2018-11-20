@@ -94,7 +94,7 @@ def submitMissingEntry(request):
     
     
 @csrf_exempt
-def login_transkribus(request):
+def loginTranskribus(request):
     if request.is_ajax():
         usr = request.POST.get("user", None)
         pw = request.POST.get("pw", None)
