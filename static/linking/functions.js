@@ -5,6 +5,7 @@ $(document).ready(
         var colID;
         var docID;
         var pageNo = 1;
+        var pages;
 
         var mode = "pageXML";
 
@@ -329,6 +330,8 @@ $(document).ready(
                             while(cont.firstChild) {
                                 cont.removeChild(cont.firstChild);
                             }
+                            new_option = $('<option value="None" disabled selected>Wähle Collection</option>');
+                            $('#coll_select').append(new_option);
                             for (var i = 0; i < data["results"].length; i++) {
                                 colID = data["results"][i]["colId"];
                                 colName = data["results"][i]["colName"];
@@ -349,6 +352,8 @@ $(document).ready(
                     while(cont.firstChild) {
                         cont.removeChild(cont.firstChild);
                     }
+                    new_option = $('<option value="None" disabled selected>Wähle Dokument</option>');
+                    $('#doc_select').append(new_option);
                     for (var i = 0; i < data["results"].length; i++) {
                         docID = data["results"][i]["docId"];
                         docName = data["results"][i]["title"];
@@ -365,22 +370,44 @@ $(document).ready(
             $.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
                 function(data) {
                     // TODO: Create Select Element for page choice
-                    url = data["results"]["pageList"]["pages"][0]["tsList"]["transcripts"][0]["url"]
-                    $.get(url).done( function(data) {
-                        var xmlText = new XMLSerializer().serializeToString(data);
-                        xml = xmlText;
-                        relevantPage = data.getElementsByTagName("Page")[pageNo-1];
-                        textregions = relevantPage.getElementsByTagName("TextRegion");
-                        all_text = []
-                        for (var i = 0; i < textregions.length; i++) {
-                            textequivs = textregions[i].getElementsByTagName("TextEquiv");
-                            this_unicode = textequivs[textequivs.length-1].getElementsByTagName("Unicode")[0].innerHTML;
-                            all_text.push(this_unicode);
-                        }
-                        $("#showXMLText").html(all_text.join("\n\n"));
-                    });
+                    pages = data["results"]["pageList"]["pages"]
+                    
+                    pageLen = pages.length;
+
+                    var cont = $('#page_select')[0];
+                    while(cont.firstChild) {
+                        cont.removeChild(cont.firstChild);
+                    }
+                    new_option = $('<option value="None" disabled selected>Wähle Seite</option>');
+                    $('#page_select').append(new_option);
+                    for (var i = 0; i < pageLen; i++) {
+                        j = i+1;
+                        new_option = $('<option value="'+j+'">'+j+'</option>');
+                        $("#page_select").append(new_option);
+                    }
                 }
             );
+        });
+
+        $('#page_select').on('change', function(evt, params) {
+            pageNo = parseInt($('#page_select').val());
+            url = pages[pageNo-1]["tsList"]["transcripts"][0]["url"]
+
+            $.get(url).done( function(data) {
+                var xmlText = new XMLSerializer().serializeToString(data);
+                xml = xmlText;
+
+                relevantPages = data.getElementsByTagName("Page");
+                relevantPage = relevantPages[0]
+                textregions = relevantPage.getElementsByTagName("TextRegion");
+                all_text = []
+                for (var i = 0; i < textregions.length; i++) {
+                    textequivs = textregions[i].getElementsByTagName("TextEquiv");
+                    this_unicode = textequivs[textequivs.length-1].getElementsByTagName("Unicode")[0].innerHTML;
+                    all_text.push(this_unicode);
+                }
+                $("#showXMLText").html(all_text.join("\n\n"));
+            });
         });
     }
 );
