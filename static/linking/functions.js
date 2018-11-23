@@ -160,7 +160,6 @@ $(document).ready(
                 if(current_tag >= name_tags.results.length) {
                     //TODO: Send references to python to change the PageXML
                     modifyXML();
-                    alert("All references chosen!");
                 }
                 else {
                     for (current_tag; current_tag < name_tags.results.length; current_tag++) {
@@ -175,7 +174,6 @@ $(document).ready(
                             chosen_refs[current_tag] = name_tags.results[current_tag].tag;
                             //TODO: Send references to python to change the PageXML
                             modifyXML();
-                            alert("All references chosen!");
                         }
                         else {
                             for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
@@ -192,9 +190,21 @@ $(document).ready(
             //console.log(chosen_refs);
             $.post("changeXML/", { origXML: xml, refDict: JSON.stringify(chosen_refs) }).done(
                 function (data) {
-                    $("textarea#xmlinputfield").val(data);
                     if(mode=="runTK") {
-                        $.post("postTranscript/", { colID: colID, docID: docID, pageNo: pageNo, sid: sessionID, xml: data });
+                        $.post("postTranscript/", { colID: colID, docID: docID, pageNo: pageNo, sid: sessionID, xml: data }).done(
+                            function (data) {
+                                r = data["response"];
+                                if(r) {
+                                    alert("Successful upload to server!");
+                                }
+                                else {
+                                    alert("Failed upload to server! Please contanct an administrator.");
+                                }
+                            });
+                    }
+                    else {
+                        $("textarea#xmlinputfield").val(data);
+                        alert("All references chosen!");
                     }
                 }
             );
@@ -210,7 +220,6 @@ $(document).ready(
             if(current_tag >= name_tags.results.length) {
                 //TODO: Send references to python to change the PageXML
                 modifyXML()
-                alert("All references chosen!");
             }
             else {
                 for (current_tag; current_tag < name_tags.results.length; current_tag++) {
@@ -225,7 +234,6 @@ $(document).ready(
                         chosen_refs[current_tag] = name_tags.results[current_tag].tag;
                         //TODO: Send references to python to change the PageXML
                         modifyXML()
-                        alert("All references chosen!");
                     }
                     else {
                         for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {

@@ -127,4 +127,4 @@ def getDocument(request):
 def postTranscript(request):
     if request.is_ajax():
         r = postPage(request.POST.get("colID"), request.POST.get("docID"), request.POST.get("pageNo"), request.POST.get("sid"), request.POST.get("xml"))
-    return JsonResponse({"":""})
+    return JsonResponse({"response":r})
