@@ -33,6 +33,26 @@ def getDocuments(sid, colid):
         print("SessionID or collectionID invalid?")
         return None
 
+
+def getDocumentR(colid, docid, sid):
+    r = requests.get("https://transkribus.eu/TrpServer/rest/collections/{}/{}/fulldoc?JSESSIONID={}".format(colid, docid, sid))
+    if r.status_code == requests.codes.ok:
+        return r.json()
+    else:
+        print(r)
+        print("documentID or collectionID invalid?")
+        return None
+        
+        
+def postPage(colid, docid, pageNo, sid, xml):
+    r = requests.post("https://transkribus.eu/TrpServer/rest/collections/{}/{}/{}/text?JSESSIONID={}".format(colid, docid, pageNo, sid), data=xml.encode("utf8"), params={ "note":"LT" })
+    if r.status_code == requests.codes.ok:
+        return True
+    else:
+        print(r)
+        print("documentID or collectionID invalid?")
+        return False
+
 if __name__ == "__main__":
     data = login("KTest@gmx.ch", "")
     print(data)

@@ -14,5 +14,7 @@ urlpatterns = [
     path('loginTranskribus/', views.loginTranskribus, name='loginTranskribus'),
     path('getCollectionList/', views.getCollectionList, name='getCollectionList'),
     path('getDocumentList/', views.getDocumentList, name='getDocumentList'),
+    path('getDocument/', views.getDocument, name='getDocument'),
+    path('postTranscript/', views.postTranscript, name='postTranscript'),
     
 ]

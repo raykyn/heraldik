@@ -429,7 +429,8 @@ def getNames(xml):
     content = re.sub("<\?xml version.*?>", "", xml)
     try:
         root = et.fromstring(content)
-    except:
+    except Exception as e:
+        print(e)
         return {"XMLERROR":"XMLERROR"}
     pagename = root.find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Page").get("imageFilename")
     textlines = root.findall(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}TextLine")

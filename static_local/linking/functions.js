@@ -2,6 +2,9 @@ $(document).ready(
     function(){
 
         var sessionID;
+        var colID;
+        var docID;
+        var pageNo = 1;
 
         var mode = "pageXML";
 
@@ -9,8 +12,8 @@ $(document).ready(
         var already_chosen_ids = [];
         var name_tags;
         var current_tag = 0;
-        var pubyear;
-        var xml;
+        var pubyear = "";
+        var xml = "";
 
         var chosen_refs = {}
 
@@ -189,6 +192,9 @@ $(document).ready(
             $.post("changeXML/", { origXML: xml, refDict: JSON.stringify(chosen_refs) }).done(
                 function (data) {
                     $("textarea#xmlinputfield").val(data);
+                    if(mode=="runTK") {
+                        $.post("postTranscript/", { colID: colID, docID: docID, pageNo: pageNo, sid: sessionID, xml: data });
+                    }
                 }
             );
         }
@@ -240,8 +246,9 @@ $(document).ready(
                 xml = $("textarea#xmlinputfield").val();
                 pubyear = $("input#pubyear").val();
             }
-            else {
-                return;
+            else if (mode == "runTK") {
+                // xml is already ready
+                pubyear = $("input#pubyearTK").val();
             }
             if(pubyear == "") {
                 pubyear = 0;
@@ -311,7 +318,7 @@ $(document).ready(
         $("#TKlogin").click( function() {
             usr = $("#username").val();
             pass = $("#pass").val();
-            $.post("login_transkribus/", { user: usr, pw: pass }).done(
+            $.post("loginTranskribus/", { user: usr, pw: pass }).done(
                 function(data) {
                     parser = new DOMParser();
                     xmlDoc = parser.parseFromString(data,"text/xml");
@@ -338,13 +345,12 @@ $(document).ready(
             colID = $('#coll_select').val();
             $.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
                 function(data) {
-
                     var cont = $('#doc_select')[0];
                     while(cont.firstChild) {
                         cont.removeChild(cont.firstChild);
                     }
                     for (var i = 0; i < data["results"].length; i++) {
-                        docID = data["results"][i]["pageId"];
+                        docID = data["results"][i]["docId"];
                         docName = data["results"][i]["title"];
                         new_option = $('<option value="'+docID+'">'+docName+'</option>');
                         $('#doc_select').append(new_option);
@@ -354,7 +360,27 @@ $(document).ready(
         });
 
 
-        // TODO: ONCHANGE doc_select => set xml to the pageXML content
-        // Will probably need a page select as well :-(
+        $('#doc_select').on('change', function(evt, params) {
+            docID = $('#doc_select').val();
+            $.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
+                function(data) {
+                    // TODO: Create Select Element for page choice
+                    url = data["results"]["pageList"]["pages"][0]["tsList"]["transcripts"][0]["url"]
+                    $.get(url).done( function(data) {
+                        var xmlText = new XMLSerializer().serializeToString(data);
+                        xml = xmlText;
+                        relevantPage = data.getElementsByTagName("Page")[pageNo-1];
+                        textregions = relevantPage.getElementsByTagName("TextRegion");
+                        all_text = []
+                        for (var i = 0; i < textregions.length; i++) {
+                            textequivs = textregions[i].getElementsByTagName("TextEquiv");
+                            this_unicode = textequivs[textequivs.length-1].getElementsByTagName("Unicode")[0].innerHTML;
+                            all_text.push(this_unicode);
+                        }
+                        $("#showXMLText").html(all_text.join("\n\n"));
+                    });
+                }
+            );
+        });
     }
 );
