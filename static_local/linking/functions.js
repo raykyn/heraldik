@@ -218,7 +218,6 @@ $(document).ready(
             cleanCandWindows();
             current_tag++;
             if(current_tag >= name_tags.results.length) {
-                //TODO: Send references to python to change the PageXML
                 modifyXML()
             }
             else {
@@ -232,7 +231,6 @@ $(document).ready(
                             name_tags.results[current_tag].tag[i]["ref"] = null;
                         }
                         chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                        //TODO: Send references to python to change the PageXML
                         modifyXML()
                     }
                     else {
@@ -329,25 +327,34 @@ $(document).ready(
             pass = $("#pass").val();
             $.post("loginTranskribus/", { user: usr, pw: pass }).done(
                 function(data) {
-                    parser = new DOMParser();
-                    xmlDoc = parser.parseFromString(data,"text/xml");
-                    sessionID = xmlDoc.getElementsByTagName("sessionId")[0].childNodes[0].nodeValue;
-                    $.post("getCollectionList/", { sid: sessionID }).done(
-                        function(data) {
-                            var cont = $('#coll_select')[0];
-                            while(cont.firstChild) {
-                                cont.removeChild(cont.firstChild);
-                            }
-                            new_option = $('<option value="None" disabled selected>Wähle Collection</option>');
-                            $('#coll_select').append(new_option);
-                            for (var i = 0; i < data["results"].length; i++) {
-                                colID = data["results"][i]["colId"];
-                                colName = data["results"][i]["colName"];
-                                new_option = $('<option value="'+colID+'">'+colName+'</option>');
+                    if(data == "None") {
+                        //console.log("Login failed.");
+                        $("#login_response").text("Failed to log in.");
+                    } else {
+                        //console.log("Login worked.");
+                        $("#login_response").text("Successfully logged in.");
+                        parser = new DOMParser();
+                        xmlDoc = parser.parseFromString(data,"text/xml");
+                        sessionID = xmlDoc.getElementsByTagName("sessionId")[0].childNodes[0].nodeValue;
+                        $.post("getCollectionList/", { sid: sessionID }).done(
+                            function(data) {
+                                var cont = $('#coll_select')[0];
+                                while(cont.firstChild) {
+                                    cont.removeChild(cont.firstChild);
+                                }
+                                new_option = $('<option value="None" disabled selected>Wähle Collection</option>');
                                 $('#coll_select').append(new_option);
+                                colls = data["results"]
+                                colls.sort((a, b) => a["colName"].localeCompare(b["colName"]))
+                                for (var i = 0; i < colls.length; i++) {
+                                    colID = colls[i]["colId"];
+                                    colName = colls[i]["colName"];
+                                    new_option = $('<option value="'+colID+'">'+colName+'</option>');
+                                    $('#coll_select').append(new_option);
+                                }
                             }
-                        }
                     );
+                }
                 }
             );
         });
@@ -362,9 +369,11 @@ $(document).ready(
                     }
                     new_option = $('<option value="None" disabled selected>Wähle Dokument</option>');
                     $('#doc_select').append(new_option);
-                    for (var i = 0; i < data["results"].length; i++) {
-                        docID = data["results"][i]["docId"];
-                        docName = data["results"][i]["title"];
+                    docs = data["results"]
+                    docs.sort((a, b) => a["title"].localeCompare(b["title"]))
+                    for (var i = 0; i < docs.length; i++) {
+                        docID = docs[i]["docId"];
+                        docName = docs[i]["title"];
                         new_option = $('<option value="'+docID+'">'+docName+'</option>');
                         $('#doc_select').append(new_option);
                     }
@@ -379,9 +388,7 @@ $(document).ready(
                 function(data) {
                     // TODO: Create Select Element for page choice
                     pages = data["results"]["pageList"]["pages"]
-                    
                     pageLen = pages.length;
-
                     var cont = $('#page_select')[0];
                     while(cont.firstChild) {
                         cont.removeChild(cont.firstChild);
@@ -411,8 +418,10 @@ $(document).ready(
                 all_text = []
                 for (var i = 0; i < textregions.length; i++) {
                     textequivs = textregions[i].getElementsByTagName("TextEquiv");
-                    this_unicode = textequivs[textequivs.length-1].getElementsByTagName("Unicode")[0].innerHTML;
-                    all_text.push(this_unicode);
+                    if(textequivs.length > 0) {
+                        this_unicode = textequivs[textequivs.length-1].getElementsByTagName("Unicode")[0].innerHTML;
+                        all_text.push(this_unicode);
+                    }
                 }
                 $("#showXMLText").html(all_text.join("\n\n"));
             });
