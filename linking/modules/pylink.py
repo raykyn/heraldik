@@ -11,6 +11,35 @@ import requests
 import re
 
 
+def getTEIData(xml):
+    data = {
+        "orig_names" : { "results" : [] },
+        "norm_names" : { "results" : [] },
+        "fulltext" : { 
+            "string" : [],
+            "type" : ""
+        },
+    }
+    typeDict = {
+        "persName" : "person",
+        "placeName" : "place",
+        "orgName" : "organization"
+    }
+    m = re.match(r"<(\S+) .*?>(.*?)<\/\1>", xml)
+    if m:
+        data["fulltext"]["type"] = typeDict[m.group(1)]
+        text = m.group(2)
+        text = re.sub(r"<abbr>.*?<\/abbr>", "", text)
+        text = re.sub(r"<\/?choice>", "", text)
+        text = re.sub(r"<\/?expan>", "", text)
+        data["fulltext"]["string"].append(text)
+        data["orig_names"]["results"] = [w.rstrip(",.!?") for w in text.split() if w[0].isupper()]
+    else:
+        print("Invalid xml tag: " + xml)
+    
+    return data
+
+
 def change_XML(xml, ref_dict):
     ref_dict = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(ref_dict)
     #~ for key, val in ref_dict.items():
@@ -426,6 +455,9 @@ def solve_abbrevs(text, tag, all_tags):
     
 
 def getNames(xml):
+    """
+    get person and place tags from PageXML.
+    """
     content = re.sub("<\?xml version.*?>", "", xml)
     try:
         root = et.fromstring(content)

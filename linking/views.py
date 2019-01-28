@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 from .models import NormEntry, MissingEntry
-from .modules.pylink import getNames, getCand, get_persons, get_places, get_organizations, change_XML
+from .modules.pylink import getNames, getCand, get_persons, get_places, get_organizations, change_XML, getTEIData
 from .modules.transkribusConnect import login, getCollections, getDocuments, getDocumentR, postPage
 import json
 
@@ -19,6 +19,27 @@ def changeXML(request):
     if request.is_ajax():
         mod_xml = change_XML(request.POST.get("origXML", None), request.POST.get("refDict", None))
         return HttpResponse(mod_xml)
+        
+        
+@csrf_exempt
+def getDataTEI(request):
+    """
+    Get XML-Node.
+    Return a dictionary:
+    - orig_names
+        - results (list)
+    - norm_names
+        - results (list)
+    - fulltag
+        - string (list)
+        - type (string)
+    """
+    if request.is_ajax():
+        data = getTEIData(request.POST.get("input", None));
+        for name in data["orig_names"]["results"]:
+            norms = NormEntry.objects.filter(orig_name=name)
+            data["norm_names"]["results"].extend([x.norm() for x in norms])
+        return JsonResponse(data);
 
 @csrf_exempt
 def getNameTags(request):
