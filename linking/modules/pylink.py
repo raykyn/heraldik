@@ -30,8 +30,7 @@ def getTEIData(xml):
         data["fulltext"]["type"] = typeDict[m.group(1)]
         text = m.group(2)
         text = re.sub(r"<abbr>.*?<\/abbr>", "", text)
-        text = re.sub(r"<\/?choice>", "", text)
-        text = re.sub(r"<\/?expan>", "", text)
+        text = re.sub(r"<\/?\S+?( .*?)?>", "", text)
         data["fulltext"]["string"].append(text)
         data["orig_names"]["results"] = [w.rstrip(",.!?") for w in text.split() if w[0].isupper()]
     else:

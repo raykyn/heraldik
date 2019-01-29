@@ -191,7 +191,6 @@ $(document).ready(
                                     name_tags.results[current_tag].tag[i]["ref"] = null;
                                 }
                                 chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                                //TODO: Send references to python to change the PageXML
                                 modifyXML();
                             }
                             else {
@@ -203,13 +202,29 @@ $(document).ready(
                         }
                     }
                 } else {
-                    $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
-                    function(data) {
-                        console.log(data);
-                        getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
-                    });
+                    TEI_continue();
                 }
             });
+        }
+        
+        function TEI_continue() {
+            // Checks if all tags have been processed and if true
+            // transforms the xmlDocument back to string and writes it to
+            // the textarea
+            // returns true if there are more tags to process
+            // else continue with the next tag
+            if(current_tag >= searchNodes.length) {
+                var xmlText = new XMLSerializer().serializeToString(xmlDocument);
+                $("textarea#xmlinputfieldTEI").val(xmlText);
+                alert("All references chosen!");
+            }
+            else {
+                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
+                function(data) {
+                    console.log(data);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
+                });
+            }
         }
 
         function modifyXML() {
@@ -237,35 +252,43 @@ $(document).ready(
         }
 
         function skip() {
-            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                name_tags.results[current_tag].tag[i]["ref"] = null;
+            if(mode != "runTEI") {
+                for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                    name_tags.results[current_tag].tag[i]["ref"] = null;
+                }
+                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
             }
-            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+            // TODO: Append placeholder if skip is pressed?
             cleanCandWindows();
             current_tag++;
-            if(current_tag >= name_tags.results.length) {
-                modifyXML()
-            }
-            else {
-                for (current_tag; current_tag < name_tags.results.length; current_tag++) {
-                    if(filterTag(name_tags.results[current_tag])) {
-                        processTag(name_tags.results[current_tag]);
-                        break
-                    }
-                    else if(current_tag+1 == name_tags.results.length) {
-                        for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                            name_tags.results[current_tag].tag[i]["ref"] = null;
+            //
+            if(mode != "runTEI") {
+                if(current_tag >= name_tags.results.length) {
+                    modifyXML()
+                }
+                else {
+                    for (current_tag; current_tag < name_tags.results.length; current_tag++) {
+                        if(filterTag(name_tags.results[current_tag])) {
+                            processTag(name_tags.results[current_tag]);
+                            break
                         }
-                        chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                        modifyXML()
-                    }
-                    else {
-                        for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                            name_tags.results[current_tag].tag[i]["ref"] = null;
+                        else if(current_tag+1 == name_tags.results.length) {
+                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            }
+                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                            modifyXML()
                         }
-                        chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                        else {
+                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            }
+                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                        }
                     }
                 }
+            } else {
+                TEI_continue();
             }
         }
 
@@ -322,7 +345,16 @@ $(document).ready(
                 var placeNames = body.getElementsByTagName("placeName");
 
                 searchNodes = Array.from(persNames).concat(Array.from(placeNames));
-                //console.log(searchNodes);
+                
+                var swap = [];
+                // ignore all nodes that are already linked
+                for (i = 0; i < searchNodes.length; i++)
+                {
+                    if(!searchNodes[i].hasAttribute("ref")) {
+                        swap.push(searchNodes[i]);
+                    }
+                }
+                searchNodes = swap;
                 
                 $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
                 function(data) {

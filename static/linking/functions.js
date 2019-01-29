@@ -1,5 +1,7 @@
 $(document).ready(
     function(){
+        
+        console.log("ready");
 
         var sessionID;
         var colID;
@@ -15,6 +17,9 @@ $(document).ready(
         var current_tag = 0;
         var pubyear = "";
         var xml = "";
+        var xmlDocument;
+        
+        var searchNodes;
 
         var chosen_refs = {}
 
@@ -66,13 +71,19 @@ $(document).ready(
             var asString = joined.join(", ");
             $("#fullstring").text(full);
             $("#signalList").text(asString);
+            
+            if(mode != "runTEI") {
+                type = curr.tag[0].attr;
+            } else {
+                type = curr.type;
+            }
 
             $.post("getRefCandidates/", { 
                 input: JSON.stringify(joined), 
                 pubyear: pubyear,
                 past_names: JSON.stringify(all_past_names),
                 past_ids: JSON.stringify(already_chosen_ids),
-                type: curr.tag[0].attr
+                type: type
             }).done(
             function(data) {
                 updateCandWindow(data["results"], curr);
@@ -145,45 +156,75 @@ $(document).ready(
                 new_entry[0].children[2].children[0].refID = hits[i]["id"];
             }
             $(".choose").click( function() {
-                var chosen_id = $(this)[0].refID;
-                for (var i = 0; i < curr.tag.length; i++) {
-                    curr.tag[i]["ref"] = chosen_id;
+                if(mode != "runTEI") {
+                    var chosen_id = $(this)[0].refID;
+                    for (var i = 0; i < curr.tag.length; i++) {
+                        curr.tag[i]["ref"] = chosen_id;
+                    }
+                    //console.log(curr.tag);
+                    //console.log(chosen_id);
+                    chosen_refs[current_tag] = curr.tag;
+                    //console.log(chosen_refs);
+                    already_chosen_ids.push(chosen_id);
+                } else {
+                    console.log(searchNodes[current_tag])
+                    searchNodes[current_tag].setAttribute("ref", $(this)[0].refID);
+                    console.log(searchNodes[current_tag])
+                    console.log(xmlDocument);
                 }
-                //console.log(curr.tag);
-                //console.log(chosen_id);
-                chosen_refs[current_tag] = curr.tag;
-                //console.log(chosen_refs);
-                already_chosen_ids.push(chosen_id);
                 // make ready for the next process
                 cleanCandWindows();
                 current_tag++;
-                if(current_tag >= name_tags.results.length) {
-                    //TODO: Send references to python to change the PageXML
-                    modifyXML();
-                }
-                else {
-                    for (current_tag; current_tag < name_tags.results.length; current_tag++) {
-                        if(filterTag(name_tags.results[current_tag])) {
-                            processTag(name_tags.results[current_tag]);
-                            break
-                        }
-                        else if(current_tag+1 == name_tags.results.length) {
-                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                if(mode != "runTEI") {
+                    if(current_tag >= name_tags.results.length) {
+                        //TODO: Send references to python to change the PageXML
+                        modifyXML();
+                    }
+                    else {
+                        for (current_tag; current_tag < name_tags.results.length; current_tag++) {
+                            if(filterTag(name_tags.results[current_tag])) {
+                                processTag(name_tags.results[current_tag]);
+                                break
                             }
-                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                            //TODO: Send references to python to change the PageXML
-                            modifyXML();
-                        }
-                        else {
-                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            else if(current_tag+1 == name_tags.results.length) {
+                                for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                                    name_tags.results[current_tag].tag[i]["ref"] = null;
+                                }
+                                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                                modifyXML();
                             }
-                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                            else {
+                                for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                                    name_tags.results[current_tag].tag[i]["ref"] = null;
+                                }
+                                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                            }
                         }
                     }
+                } else {
+                    TEI_continue();
                 }
             });
+        }
+        
+        function TEI_continue() {
+            // Checks if all tags have been processed and if true
+            // transforms the xmlDocument back to string and writes it to
+            // the textarea
+            // returns true if there are more tags to process
+            // else continue with the next tag
+            if(current_tag >= searchNodes.length) {
+                var xmlText = new XMLSerializer().serializeToString(xmlDocument);
+                $("textarea#xmlinputfieldTEI").val(xmlText);
+                alert("All references chosen!");
+            }
+            else {
+                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
+                function(data) {
+                    console.log(data);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
+                });
+            }
         }
 
         function modifyXML() {
@@ -211,35 +252,43 @@ $(document).ready(
         }
 
         function skip() {
-            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                name_tags.results[current_tag].tag[i]["ref"] = null;
+            if(mode != "runTEI") {
+                for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                    name_tags.results[current_tag].tag[i]["ref"] = null;
+                }
+                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
             }
-            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+            // TODO: Append placeholder if skip is pressed?
             cleanCandWindows();
             current_tag++;
-            if(current_tag >= name_tags.results.length) {
-                modifyXML()
-            }
-            else {
-                for (current_tag; current_tag < name_tags.results.length; current_tag++) {
-                    if(filterTag(name_tags.results[current_tag])) {
-                        processTag(name_tags.results[current_tag]);
-                        break
-                    }
-                    else if(current_tag+1 == name_tags.results.length) {
-                        for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                            name_tags.results[current_tag].tag[i]["ref"] = null;
+            //
+            if(mode != "runTEI") {
+                if(current_tag >= name_tags.results.length) {
+                    modifyXML()
+                }
+                else {
+                    for (current_tag; current_tag < name_tags.results.length; current_tag++) {
+                        if(filterTag(name_tags.results[current_tag])) {
+                            processTag(name_tags.results[current_tag]);
+                            break
                         }
-                        chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                        modifyXML()
-                    }
-                    else {
-                        for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                            name_tags.results[current_tag].tag[i]["ref"] = null;
+                        else if(current_tag+1 == name_tags.results.length) {
+                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            }
+                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                            modifyXML()
                         }
-                        chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                        else {
+                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            }
+                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                        }
                     }
                 }
+            } else {
+                TEI_continue();
             }
         }
 
@@ -257,10 +306,14 @@ $(document).ready(
                 // xml is already ready
                 pubyear = $("input#pubyearTK").val();
             }
+            else if (mode == "runTEI") {
+                xml = $("textarea#xmlinputfieldTEI").val();
+                pubyear = $("input#pubyear").val();
+            }
             if(pubyear == "") {
                 pubyear = 0;
             }
-            if(xml.length > 0) {
+            if(xml.length > 0 && (mode == "runTK" || mode == "runPXML")) {
                 $.post("getNameTags/", { input: xml, }).done(
                 function(data) {
                     name_tags = data;
@@ -280,8 +333,36 @@ $(document).ready(
                     }
                 });
             }
+            else if(xml.length > 0 && mode == "runTEI") {
+                current_tag = 0;
+                // create a list of all persName and placeName tags inside the body element
+                // iterate that list by using getDataTEI.
+                // use current_tag to tell the buttons which node gets which ref
+                parser = new DOMParser();
+                xmlDocument = parser.parseFromString(xml,"text/xml");
+                var body = xmlDocument.getElementsByTagName("body")[0];
+                var persNames = body.getElementsByTagName("persName");
+                var placeNames = body.getElementsByTagName("placeName");
+
+                searchNodes = Array.from(persNames).concat(Array.from(placeNames));
+                
+                var swap = [];
+                // ignore all nodes that are already linked
+                for (i = 0; i < searchNodes.length; i++)
+                {
+                    if(!searchNodes[i].hasAttribute("ref")) {
+                        swap.push(searchNodes[i]);
+                    }
+                }
+                searchNodes = swap;
+                
+                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
+                function(data) {
+                    console.log(data);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
+                });
             }
-        );
+        });
 
         $("#addNorm").click( function() {
             var origName = $("#origIn").val();
@@ -294,7 +375,15 @@ $(document).ready(
 
         $("#reload").click( function() {
             cleanCandWindows();
-            processTag(name_tags.results[current_tag]);
+            if(mode != "runTEI") {
+                processTag(name_tags.results[current_tag]);
+            } else {
+                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
+                function(data) {
+                    console.log(data);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
+                });
+            }
         });
 
         $("#missingEntry").click( function() {
