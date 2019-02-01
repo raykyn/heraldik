@@ -221,7 +221,7 @@ $(document).ready(
             else {
                 $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
                 function(data) {
-                    console.log(data);
+                    //console.log(data);
                     getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
                 });
             }
@@ -340,7 +340,7 @@ $(document).ready(
                 // use current_tag to tell the buttons which node gets which ref
                 parser = new DOMParser();
                 xmlDocument = parser.parseFromString(xml,"text/xml");
-                var body = xmlDocument.getElementsByTagName("body")[0];
+                var body = xmlDocument.getElementsByTagName("text")[0];
                 var persNames = body.getElementsByTagName("persName");
                 var placeNames = body.getElementsByTagName("placeName");
 
@@ -356,9 +356,11 @@ $(document).ready(
                 }
                 searchNodes = swap;
                 
+                console.log(searchNodes);
+                
                 $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
                 function(data) {
-                    console.log(data);
+                    //console.log(data);
                     getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
                 });
             }
