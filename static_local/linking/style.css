@@ -31,6 +31,13 @@ body {
     height: 80%;
 }
 
+/*
+#xmlinputfield {
+    width: 100%;
+    height: 80%;
+}
+*/
+
 .pubyear {
     margin: 1%;
     width: 48%;
@@ -194,13 +201,14 @@ table {
 #transkribusTable {
     height: 100%;
     width: 50%;
-    display: flex;
+    display: block;
+    float: left;
 }
 
 #showXMLText {
     height: 100%;
     width: 50%;
-    display: flex;
+    display: block;
     float: right;
     overflow-y: scroll;
 }
