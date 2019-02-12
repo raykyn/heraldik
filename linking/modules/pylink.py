@@ -289,6 +289,8 @@ def get_persons(names, year, past_names, past_ids):
             for n in set(names):
                 if n == str(org):
                     person_dict["points"] += 1
+                elif n in str(org):
+                    person_dict["points"] += 0.5
             for n in past_names:
                 if n == str(org):
                     person_dict["points"] += 0.1

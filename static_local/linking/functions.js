@@ -169,6 +169,7 @@ $(document).ready(
                 } else {
                     console.log(searchNodes[current_tag])
                     searchNodes[current_tag].setAttribute("ref", $(this)[0].refID);
+                    already_chosen_ids.push($(this)[0].refID);
                     console.log(searchNodes[current_tag])
                     console.log(xmlDocument);
                 }
@@ -308,7 +309,7 @@ $(document).ready(
             }
             else if (mode == "runTEI") {
                 xml = $("textarea#xmlinputfieldTEI").val();
-                pubyear = $("input#pubyear").val();
+                pubyear = $("input#pubyearTEI").val();
             }
             if(pubyear == "") {
                 pubyear = 0;
