@@ -144,7 +144,7 @@ def getTEINames(xml):
             continue
         context1 = getContext(child, True, ns)
         context2 = getContext(child, False, ns)
-        context = [context1[-100:], context2[:100]]
+        context = ["[...]"+context1[-100:], context2[:100]+"[...]"]
         names = child.text
         placeholder = placeholder_counter
         child.attrib[PLACEHOLDER_ATTRIBUTE_NAME] = str(placeholder)

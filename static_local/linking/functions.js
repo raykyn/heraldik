@@ -68,7 +68,7 @@ $(document).ready(
 
         function getPossibleRefs(data, norm_names, curr, context) {
             helperTempSearch = [data, norm_names, curr, context];
-            var full = context[0] + "<b>" + curr.string.join("").replace("¬","") + "</b>" + context[1];
+            var full = context[0] + "<b>" + curr.string.join(" ").replace("¬","") + "</b>" + context[1];
             if(full == "") {
                 skip();
                 return;
@@ -372,8 +372,6 @@ $(document).ready(
                     xmlDocument = parser.parseFromString(xml,"text/xml");
                     
                     name_tags = data;
-                    
-                    console.log(name_tags)
                     
                     $.post("getDataTEI/", { input: name_tags.results[current_tag].names, }).done(
                     function(data) {
