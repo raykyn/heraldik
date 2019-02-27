@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 from .models import NormEntry, MissingEntry
-from .modules.pylink import getNames, getCand, get_persons, get_places, get_organizations, change_XML, getTEIData
+from .modules.pylink import getNames, getCand, get_persons, get_places, get_organizations, change_XML, getTEIData, getTEINames
 from .modules.transkribusConnect import login, getCollections, getDocuments, getDocumentR, postPage
 import json
 
@@ -22,6 +22,26 @@ def changeXML(request):
         
         
 @csrf_exempt
+def getNamesTEI(request):
+    """
+    Get plain text TEI.
+    Return dict containg a list of dicts and the modified xml:
+    - results:
+        [
+        - id: (int) # this is a placeholder id which will used to later find the tags again
+        - names : (list)
+        - context : (list)
+        ]
+    - mod_xml (string)
+    """
+    if request.is_ajax():
+        data = getTEINames(request.POST.get("input", None));
+        # TODO: maybe include the stuff getDataTEI does in here instead?
+        return JsonResponse(data);
+    
+        
+        
+@csrf_exempt
 def getDataTEI(request):
     """
     Get XML-Node.
@@ -30,13 +50,22 @@ def getDataTEI(request):
         - results (list)
     - norm_names
         - results (list)
-    - fulltag
+    - fulltext
         - string (list)
-        - type (string)
     """
     if request.is_ajax():
-        data = getTEIData(request.POST.get("input", None));
-        for name in data["orig_names"]["results"]:
+        #data = getTEIData(request.POST.get("input", None));
+        data = {
+            "orig_names" : { "results" : "" },
+            "norm_names" : { "results" : [] },
+            "fulltext" : { "string" : [] },
+        }
+        names = request.POST.get("input", None)
+        data["fulltext"]["string"] = [names]
+        names = [w.rstrip(",.!?") for w in names.split() if w[0].isupper()]
+        data["orig_names"]["results"] = names
+        data["norm_names"]["results"] = []
+        for name in names:
             norms = NormEntry.objects.filter(orig_name=name)
             data["norm_names"]["results"].extend([x.norm() for x in norms])
         return JsonResponse(data);

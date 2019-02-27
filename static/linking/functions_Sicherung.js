@@ -1,12 +1,6 @@
 $(document).ready(
     function(){
         
-        typeColorDict = {
-            "person" : "teal",
-            "organization" : "yellowGreen",
-            "place" : "olive"
-        }
-        
         console.log("ready");
 
         var sessionID;
@@ -60,32 +54,29 @@ $(document).ready(
         function getNorms(origNames, curr) {
             $.post("getNormalizedNames/", { input: JSON.stringify(origNames) }).done(
             function(data) {
-                getPossibleRefs(origNames, data, curr, [curr.context[0],curr.context[1]]);
+                getPossibleRefs(origNames, data, curr);
             });
         }
 
         var helperTempSearch;
 
-        function getPossibleRefs(data, norm_names, curr, context) {
-            helperTempSearch = [data, norm_names, curr, context];
-            var full = context[0] + "<b>" + curr.string.join("").replace("¬","") + "</b>" + context[1];
+        function getPossibleRefs(data, norm_names, curr) {
+            helperTempSearch = [data, norm_names, curr];
+            var full = curr.string.join("").replace("¬","");
             if(full == "") {
                 skip();
                 return;
             }
             var joined = data.results.concat(norm_names.results);
             var asString = joined.join(", ");
+            $("#fullstring").text(full);
+            $("#signalList").text(asString);
             
             if(mode != "runTEI") {
                 type = curr.tag[0].attr;
             } else {
-                type = name_tags.results[current_tag].type;
+                type = curr.type;
             }
-            
-            $("#fullstring").html(full);
-            $("#signalList").text(asString);
-            
-            $(".changeOnType").css("background-color", typeColorDict[type]);
 
             $.post("getRefCandidates/", { 
                 input: JSON.stringify(joined), 
@@ -116,21 +107,16 @@ $(document).ready(
             "type" : "Type"
         }
 
-        function createInfo(table, key, dict) {
+        function createInfo(ol1, ol2, key, dict) {
             if(dict[key].length > 0) {
-                var label = toGerman[key];
-                var info = dict[key].join(", ");
-                var tr = document.createElement("tr");
-                var lc = document.createElement("td");
-                var textNode = document.createTextNode(label);
-                lc.appendChild(textNode);
-                tr.appendChild(lc);
-
-                var rc = document.createElement("td");
-                var textNode = document.createTextNode(info);
-                rc.appendChild(textNode);
-                tr.appendChild(rc);
-                table.appendChild(tr);
+                var x = document.createElement("LI");
+                var textNode = document.createTextNode(toGerman[key]);
+                x.appendChild(textNode)
+                ol1.appendChild(x);
+                var x = document.createElement("LI");
+                var textNode = document.createTextNode(dict[key].join(", "));
+                x.appendChild(textNode)
+                ol2.appendChild(x);
             }
         }
 
@@ -142,14 +128,22 @@ $(document).ready(
         }
 
         function updateCandWindow(hits, curr) {
+            /*
+            * TODO:
+            * delete rightCol completely
+            * create a table in the leftCol
+            * inside this table:
+            * a new row for each info in toGerman that is existent
+            * in that row create two columns, one for the label, one for the content
+            */
             var lcolumn = $('<div id="leftCol"></div>');
-            // var rcolumn = $('<div id="rightCol"></div>');
+            var rcolumn = $('<div id="rightCol"></div>');
             var bcolumn = $('<div id="buttonCol"></div>');
             var button = $('<button class="choose">Auswählen</button>');
             bcolumn.append(button);
             var entry = $('<div id="candWindow"></div>');
             entry.append(lcolumn);
-            // entry.append(rcolumn);
+            entry.append(rcolumn);
             entry.append(bcolumn);
             if (hits.length == 0) {
                 var notFound = $('<h3>Keine Kandidaten gefunden. Erweitere die Normalisierungen für bessere Chancen!</h3>');
@@ -158,16 +152,16 @@ $(document).ready(
             for (var i = 0; i < hits.length; i++) {
                 var new_entry = entry.clone();
                 $("#foundEntryContainer").append(new_entry);
-                var table = document.createElement("table");
+                var ol = document.createElement("UL");
+                var ol2 = document.createElement("UL");
                 for (var info in toGerman) {
                     if (hits[i].hasOwnProperty(info)) {
-                        createInfo(table, info, hits[i])
+                        createInfo(ol, ol2, info, hits[i])
                     }
                 }
-                new_entry[0].children[0].appendChild(table);
-                //new_entry[0].children[0].appendChild(ol);
-                //new_entry[0].children[1].appendChild(ol2);
-                new_entry[0].children[1].children[0].refID = hits[i]["id"];
+                new_entry[0].children[0].appendChild(ol);
+                new_entry[0].children[1].appendChild(ol2);
+                new_entry[0].children[2].children[0].refID = hits[i]["id"];
             }
             $(".choose").click( function() {
                 if(mode != "runTEI") {
@@ -181,21 +175,18 @@ $(document).ready(
                     //console.log(chosen_refs);
                     already_chosen_ids.push(chosen_id);
                 } else {
-                    // find the node with the correct placeholder in our xmlDocument
-                    // remove the placeholder and add the ref attribute instead
-                    var placeholder = name_tags.results[current_tag].id
-                    var node = $(xmlDocument).find("*[ref_placeholder_id='"+placeholder+"']")
-                    node.attr("ref", $(this)[0].refID);
-                    node.removeAttr("ref_placeholder_id");
-                    //console.log($(this)[0].refID);
+                    console.log(searchNodes[current_tag])
+                    searchNodes[current_tag].setAttribute("ref", $(this)[0].refID);
                     already_chosen_ids.push($(this)[0].refID);
-                    //console.log(xmlDocument);
+                    console.log(searchNodes[current_tag])
+                    console.log(xmlDocument);
                 }
                 // make ready for the next process
                 cleanCandWindows();
                 current_tag++;
                 if(mode != "runTEI") {
                     if(current_tag >= name_tags.results.length) {
+                        //TODO: Send references to python to change the PageXML
                         modifyXML();
                     }
                     else {
@@ -230,17 +221,17 @@ $(document).ready(
             // transforms the xmlDocument back to string and writes it to
             // the textarea
             // returns true if there are more tags to process
-            // else continue with the next tag            
-            if(current_tag >= name_tags.results.length) {
+            // else continue with the next tag
+            if(current_tag >= searchNodes.length) {
                 var xmlText = new XMLSerializer().serializeToString(xmlDocument);
                 $("textarea#xmlinputfieldTEI").val(xmlText);
                 alert("All references chosen!");
             }
             else {
-                $.post("getDataTEI/", { input: name_tags.results[current_tag].names, }).done(
+                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
                 function(data) {
                     //console.log(data);
-                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext, name_tags.results[current_tag].context);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
                 });
             }
         }
@@ -275,11 +266,6 @@ $(document).ready(
                     name_tags.results[current_tag].tag[i]["ref"] = null;
                 }
                 chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-            } else {
-                // even if we skip we need to delete the placeholder
-                var placeholder = name_tags.results[current_tag].id
-                var node = $(xmlDocument).find("*[ref_placeholder_id='"+placeholder+"']")
-                node.removeAttr("ref_placeholder_id");
             }
             // TODO: Append placeholder if skip is pressed?
             cleanCandWindows();
@@ -358,28 +344,33 @@ $(document).ready(
             }
             else if(xml.length > 0 && mode == "runTEI") {
                 current_tag = 0;
+                // create a list of all persName and placeName tags inside the body element
+                // iterate that list by using getDataTEI.
+                // use current_tag to tell the buttons which node gets which ref
+                parser = new DOMParser();
+                xmlDocument = parser.parseFromString(xml,"text/xml");
+                var body = xmlDocument.getElementsByTagName("text")[0];
+                var persNames = body.getElementsByTagName("persName");
+                var placeNames = body.getElementsByTagName("placeName");
+
+                searchNodes = Array.from(persNames).concat(Array.from(placeNames));
                 
-                /*
-                 * New plan to get from TEI
-                 * send the TEI text in plain text to python
-                 * return a list of dict containing [{id: int, name: string, context: string}]
-                 */
-                 
-                $.post("getNamesTEI/", { input: xml, }).done(
+                var swap = [];
+                // ignore all nodes that are already linked
+                for (i = 0; i < searchNodes.length; i++)
+                {
+                    if(!searchNodes[i].hasAttribute("ref")) {
+                        swap.push(searchNodes[i]);
+                    }
+                }
+                searchNodes = swap;
+                
+                console.log(searchNodes);
+                
+                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
                 function(data) {
-                    xml = data.mod_xml;
-                    parser = new DOMParser();
-                    xmlDocument = parser.parseFromString(xml,"text/xml");
-                    
-                    name_tags = data;
-                    
-                    console.log(name_tags)
-                    
-                    $.post("getDataTEI/", { input: name_tags.results[current_tag].names, }).done(
-                    function(data) {
-                        //console.log(data);
-                        getPossibleRefs(data.orig_names, data.norm_names, data.fulltext, name_tags.results[current_tag].context);
-                    });
+                    //console.log(data);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
                 });
             }
         });
@@ -401,7 +392,7 @@ $(document).ready(
                 $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
                 function(data) {
                     console.log(data);
-                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext, ["", ""]);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext)
                 });
             }
         });
@@ -428,7 +419,7 @@ $(document).ready(
             console.log(split_toAdd);
             helperTempSearch[1].results = helperTempSearch[1].results.concat(split_toAdd);
             cleanCandWindows();
-            getPossibleRefs(helperTempSearch[0], helperTempSearch[1], helperTempSearch[2], helperTempSearch[3]);
+            getPossibleRefs(helperTempSearch[0], helperTempSearch[1], helperTempSearch[2]);
         });
 
         $("#TKlogin").click( function() {

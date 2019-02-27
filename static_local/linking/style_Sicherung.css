@@ -23,7 +23,7 @@ body {
 #inputContainer {
     width: 100%;
     height: 50%;
-    background-color: lightgrey;
+    background-color: lightblue;
 }
 
 .xmlinputfield {
@@ -62,24 +62,21 @@ body {
     width: 50%;
     height: 100%;
     float: right;
-    background-color: lightgrey;
+    background-color: lightblue;
 }
 
 #contextContainer {
     padding: 2%;
     width: 96%;
-    height: 25%;
-    overflow-y: scroll;
-}
-
-.changeOnType {
+    height: 16%;
     background-color: teal;
+    overflow-y: scroll;
 }
 
 #foundEntryContainer {
     width: 100%;
-    height: 71%;
-    background-color: lightgrey;
+    height: 80%;
+    background-color: lightblue;
     overflow: scroll;
 }
 
@@ -94,7 +91,7 @@ body {
 }
 
 #leftCol {
-    width: 80%;
+    width: 40%;
 }
 
 #rightCol {
@@ -218,11 +215,4 @@ table {
 
 #transkribus {
     display: flex;
-}
-
-#leftCol table tr td {
-    border-color: black;
-    border-bottom: dotted;
-    border-width: 1px;
-    width: 50%;
 }

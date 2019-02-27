@@ -11,6 +11,155 @@ import requests
 import re
 
 
+CONTEXTLENGTH = 100
+PLACEHOLDER_ATTRIBUTE_NAME = "ref_placeholder_id" # this needs to be changed in the js file as well!
+
+typeDict = {
+        "persName" : "person",
+        "placeName" : "place",
+        "orgName" : "organization"
+    }
+
+
+def getNamespace(element):
+    """
+    Dreist gestohlen von https://stackoverflow.com/questions/9513540/python-elementtree-get-the-namespace-string-of-an-element
+    """
+    m = re.match(r'\{.*\}', element.tag)
+    return m.group(0) if m else ''
+    
+    
+def processChildrenContext(parent, ns):
+    """
+    Helper Method for getContext.
+    """
+    textCollector = []
+    for child in parent:
+        if child.tag == "{}lb".format(ns):
+            textCollector.append(" ")
+        if child.text is not None:
+            textCollector.append(child.text)
+        childText = processChildrenContext(child, ns)
+        textCollector.append(childText)
+        if child.tail is not None:
+            textCollector.append(child.tail)
+    return "".join(textCollector)
+    
+    
+    
+def getContext(startnode, mode, ns):
+    """
+    mode == True => context1
+    mode == False => context2
+    """
+    context = []
+    context_len = 0
+    if mode:
+        nextNode = lambda x : x.getprevious()
+    else:
+        nextNode = lambda x : x.getnext()
+        if startnode.tail is not None:
+            context_len += len(startnode.tail)
+            context.append(startnode.tail)
+    oldNode = startnode
+    newNode = nextNode(startnode)
+    while context_len < 100:
+        if newNode is not None:
+            if mode:
+                if newNode.tail is not None:
+                    context_len += len(newNode.tail)
+                    context.append(newNode.tail)
+                childText = processChildrenContext(newNode, ns)
+                context_len += len(childText)
+                context.append(childText)
+                if newNode.text is not None:
+                    context_len += len(newNode.text)
+                    context.append(newNode.text)
+                if newNode.tag == "{}lb".format(ns):
+                    context_len += 1
+                    context.append(" ")
+            else:
+                if newNode.tag == "{}lb".format(ns):
+                    context_len += 1
+                    context.append(" ")
+                if newNode.text is not None:
+                    context_len += len(newNode.text)
+                    context.append(newNode.text)
+                childText = processChildrenContext(newNode, ns)
+                context_len += len(childText)
+                context.append(childText)
+                if newNode.tail is not None:
+                    context_len += len(newNode.tail)
+                    context.append(newNode.tail)
+            oldNode = newNode
+            newNode = nextNode(newNode)
+        else:
+            if mode:
+                if oldNode.getparent().text is not None:
+                    context_len += len(oldNode.getparent().text)
+                    context.append(oldNode.getparent().text)
+                break
+            else:
+                break
+    if mode:
+        context.reverse()
+    context = "".join(context)
+    return context
+    
+
+def getTEINames(xml):
+    """
+    Get plain text TEI.
+    Return dict containg a list of dicts and the modified xml:
+    - results:
+        [
+        - id: (int) # this is a placeholder id which will used to later find the tags again
+        - names : (string)
+        - context : (list)
+        - type : (string)
+        ]
+    - mod_xml (string) # containing the placeholder ids
+    """
+    
+    data = { "results" : [], "mod_xml" : ""}
+    
+    placeholder_counter = 0
+    
+    # first remove either abbrev or expan tags (and all choice tags)
+    xml = re.sub(r'<\?xml version="1.0" encoding="UTF-8"\?>', "", xml)
+    xml = re.sub(r"<abbr>.*?<\/abbr>", "", xml)
+    xml = re.sub(r"(<choice>|<\/choice>)", "", xml)
+    xml = re.sub(r"<expan>", "", xml)
+    xml = re.sub(r"<\/expan>", "", xml)
+    
+    root = et.fromstring(xml)
+    ns = getNamespace(root)
+    tags = ["{}persName".format(ns), "{}orgName".format(ns), "{}placeName".format(ns)]
+    counter = 0
+    active = False # checks if we are actually in the body
+    for child in root.iter():
+        if child.tag == "{}text".format(ns):
+            active = True
+        if not active or child.tag not in tags or ("ref" in child.attrib and len(child.attrib["ref"]) > 0):
+            continue
+        context1 = getContext(child, True, ns)
+        context2 = getContext(child, False, ns)
+        context = [context1[-100:], context2[:100]]
+        names = child.text
+        placeholder = placeholder_counter
+        child.attrib[PLACEHOLDER_ATTRIBUTE_NAME] = str(placeholder)
+        new_entry = {}
+        new_entry["id"] = str(placeholder)
+        placeholder_counter += 1
+        new_entry["names"] = names
+        new_entry["context"] = context
+        new_entry["type"] = typeDict[re.sub(ns, "", child.tag)]
+        data["results"].append(new_entry)
+    data["mod_xml"] = et.tounicode(root)
+    
+    return data
+    
+
 def getTEIData(xml):
     data = {
         "orig_names" : { "results" : [] },
@@ -413,23 +562,45 @@ def get_tag_info(info, lineNo):
     return taginfo
 
     
-def get_tagged_str(taginfo, line):
+def get_tagged_str(taginfo, line, lastline, nextline):
     """
     Find the corresponding string for the tags.
     Only happens to tags that need a ref attribute.
+    TODO: Only add [...] if lastline is the first line 
+        or nextline is the last line of the document
     """
     this_type = taginfo.attr
     if this_type in ["person", "organization", "place"]:
+        context = []
         if hasattr(taginfo,"offset") and hasattr(taginfo,"length"):
-            offset = taginfo.offset
-            length = taginfo.length
+            offset = int(taginfo.offset)
+            length = int(taginfo.length)
             string = line[int(offset):int(offset)+int(length)]
-            return (taginfo), string
+            # GET CONTEXT
+            contextSTART = int(offset)-CONTEXTLENGTH
+            contextEND = int(offset)+int(length)+CONTEXTLENGTH
+            if(contextSTART >= 0):
+                context.append("[...]"+line[contextSTART:offset])
+            elif(contextSTART+len(lastline) > 0):
+                context.append("[...]"+lastline[contextSTART:]+"<br>"+line[:offset])
+            elif(contextSTART+len(lastline) <= 0):
+                context.append("[...]"+lastline+"<br>"+line[:offset])
+            else:
+                context.append("")
+            if(contextEND < len(line)):
+                context.append(line[offset+length:contextEND]+"[...]")
+            elif(contextEND-len(line) < len(nextline)):
+                context.append(line[offset+length:]+"<br>"+nextline[:contextEND-len(line)]+"[...]")
+            elif(contextEND-len(line) >= len(nextline)):
+                context.append(line[offset+length:]+"<br>"+nextline+"[...]")
+            else:
+                context.append("")
+            return (taginfo), string, context
         else:
             print("Malformed Tag: "+str(taginfo))
-            return (taginfo), ""
+            return (taginfo), "", ["", ""]
     else:
-        return (taginfo), ""
+        return (taginfo), "", ["", ""]
         
         
 def solve_abbrevs(text, tag, all_tags):
@@ -457,7 +628,7 @@ def solve_abbrevs(text, tag, all_tags):
 
 def getNames(xml):
     """
-    get person and place tags from PageXML.
+    get person, organization and place tags from PageXML.
     """
     content = re.sub("<\?xml version.*?>", "", xml)
     try:
@@ -470,12 +641,21 @@ def getNames(xml):
     all_tags = OrderedDict()
     len_saver = []
     for i, tl in enumerate(textlines):
+        if i > 0:
+            lastline = textlines[i-1].find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode").text
+        else:
+            lastline = ""
         line = tl.find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode")
+        if i+1 < len(textlines):
+            nextline = textlines[i+1].find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode").text
+        else:
+            nextline = ""
         len_saver.append(len(line.text))
         taginfo = get_tag_info(tl.get("custom"), i)
         all_tags[i] = OrderedDict()
         for ti in taginfo:
-            tag, string = get_tagged_str(ti, line.text)
+            tag, string, context = get_tagged_str(ti, line.text, lastline, nextline)
+            string = (string, context) # DIRTY WATCH OUT, FROM THIS POINT ON, STRING IS A TUPLE, NOT A STRING OBJECT
             all_tags[i][tag] = string
     complete_tags = OrderedDict()
     for i, linetags in all_tags.items():
@@ -524,15 +704,22 @@ def getNames(xml):
 
             else: # simply append
                 complete_tags[tag] = string
+                
+    #~ for tag, info in complete_tags.items():
+        #~ print(tag)
+        #~ print(info)
     
     jsonout = []
     for tag, string in complete_tags.items():
         if type(tag) != tuple:
             new_tag = [tag._asdict()]
-            new_string = [string]
+            new_string = [string[0]]
+            new_context = string[1]
         elif type(tag) == tuple:
             new_tag = [x._asdict() for x in tag]
-            new_string = list(string)
-        jsonout.append({"tag" : new_tag, "string" : new_string})
+            print(string)
+            new_string = [x[0] for x in list(string)]
+            new_context = [string[0][1][0], string[-1][1][1]]
+        jsonout.append({"tag" : new_tag, "string" : new_string, "context" : new_context})
                 
     return {"results":jsonout}

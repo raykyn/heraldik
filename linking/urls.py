@@ -17,5 +17,6 @@ urlpatterns = [
     path('getDocument/', views.getDocument, name='getDocument'),
     path('postTranscript/', views.postTranscript, name='postTranscript'),
     path('getDataTEI/', views.getDataTEI, name='getDataTEI'),
+    path('getNamesTEI/', views.getNamesTEI, name='getNamesTEI'),
     
 ]
