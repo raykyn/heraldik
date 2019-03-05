@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-from .secrets.secrets import SECRET_KEY
+from .secrets.secrets import SECRET_KEY, DEBUG
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +25,7 @@ SECURE_SSL_REDIRECT = False
 # In a separate file
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# In a separate file
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "104.248.136.9"]
 
