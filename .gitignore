@@ -1,0 +1,4 @@
+*pycache*
+*.sqlite3
+*/secrets/*
+

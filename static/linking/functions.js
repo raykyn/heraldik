@@ -24,8 +24,6 @@ $(document).ready(
         var pubyear = "";
         var xml = "";
         var xmlDocument;
-        
-        var searchNodes;
 
         var chosen_refs = {}
 
@@ -315,7 +313,7 @@ $(document).ready(
             }
         }
 
-        $("#skip").click( function() {skip()} );
+        $("#skip").click( function() { skip()} );
 
         $(".run").click( function() {
     		setStandard();
@@ -396,10 +394,10 @@ $(document).ready(
             if(mode != "runTEI") {
                 processTag(name_tags.results[current_tag]);
             } else {
-                $.post("getDataTEI/", { input: searchNodes[current_tag].outerHTML, }).done(
+                $.post("getDataTEI/", { input: name_tags.results[current_tag].names, }).done(
                 function(data) {
-                    console.log(data);
-                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext, ["", ""]);
+                    //console.log(data);
+                    getPossibleRefs(data.orig_names, data.norm_names, data.fulltext, name_tags.results[current_tag].context);
                 });
             }
         });
