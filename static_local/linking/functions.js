@@ -15,6 +15,8 @@ $(document).ready(
         var pageNo = 1;
         var pages;
 
+        var global_curr;
+
         var mode = "pageXML";
 
         var all_past_names = [];
@@ -65,6 +67,7 @@ $(document).ready(
         var helperTempSearch;
 
         function getPossibleRefs(data, norm_names, curr, context) {
+            global_curr = curr;
             helperTempSearch = [data, norm_names, curr, context];
             var full = context[0] + "<b>" + curr.string.join(" ").replace("¬","") + "</b>" + context[1];
             if(full == "") {
@@ -193,34 +196,38 @@ $(document).ready(
                 cleanCandWindows();
                 current_tag++;
                 if(mode != "runTEI") {
-                    if(current_tag >= name_tags.results.length) {
-                        modifyXML();
-                    }
-                    else {
-                        for (current_tag; current_tag < name_tags.results.length; current_tag++) {
-                            if(filterTag(name_tags.results[current_tag])) {
-                                processTag(name_tags.results[current_tag]);
-                                break
-                            }
-                            else if(current_tag+1 == name_tags.results.length) {
-                                for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                                    name_tags.results[current_tag].tag[i]["ref"] = null;
-                                }
-                                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                                modifyXML();
-                            }
-                            else {
-                                for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                                    name_tags.results[current_tag].tag[i]["ref"] = null;
-                                }
-                                chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                            }
-                        }
-                    }
+                    PageXML_continue();
                 } else {
                     TEI_continue();
                 }
             });
+        }
+
+        function PageXML_continue() {
+            if(current_tag >= name_tags.results.length) {
+                modifyXML();
+            }
+            else {
+                for (current_tag; current_tag < name_tags.results.length; current_tag++) {
+                    if(filterTag(name_tags.results[current_tag])) {
+                        processTag(name_tags.results[current_tag]);
+                        break
+                    }
+                    else if(current_tag+1 == name_tags.results.length) {
+                        for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                            name_tags.results[current_tag].tag[i]["ref"] = null;
+                        }
+                        chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                        modifyXML();
+                    }
+                    else {
+                        for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
+                            name_tags.results[current_tag].tag[i]["ref"] = null;
+                        }
+                        chosen_refs[current_tag] = name_tags.results[current_tag].tag;
+                    }
+                }
+            }
         }
         
         function TEI_continue() {
@@ -403,15 +410,44 @@ $(document).ready(
         });
 
         $("#missingEntry").click( function() {
-            var doc = $("#documentEntry").val();
-            var refLink = $("#refLinkEntry").val();
-            var subBy = $("#submittedByEntry").val();
-            var string = $("#fullstring").text();
-            if(subBy == "" || doc == "") {
-                return
-            }
+            var name = $("#missingName").val();
             $(".missingEntry").val("");
-            $.post("submitMissingEntry/", { context: string, doc: doc, ref: refLink, author: subBy });
+            $.post("submitMissingEntry/", { name: name }).done(
+                function(data) {
+                    // data.entry holds the id
+                    // open a new windoow/tab for editing purposes
+                    // dont forget to add id to already taken ids
+                    // link id
+                    var link_id = data.entry;
+                    var win = window.open("https://www.ssrq-sds-fds.ch/persons-db-edit/?query="+link_id+"&?upd&query-type=perid", "_blank");
+                    if(win) {
+                        // TODO: Find a way to put focus on the old window
+                    } else {
+                        alert('Please allow popups for this website');
+                    }
+                    if(mode != "runTEI") {
+                        var chosen_id = link_id;
+                        for (var i = 0; i < global_curr.tag.length; i++) {
+                            global_curr.tag[i]["ref"] = chosen_id;
+                        }
+                        chosen_refs[current_tag] = global_curr.tag;
+                        already_chosen_ids.push(chosen_id);
+                    } else {
+                        var placeholder = name_tags.results[current_tag].id
+                        var node = $(xmlDocument).find("*[ref_placeholder_id='"+placeholder+"']")
+                        node.attr("ref", link_id);
+                        node.removeAttr("ref_placeholder_id");
+                        already_chosen_ids.push(link_id);
+                    }
+                    cleanCandWindows();
+                    current_tag++;
+                    if(mode != "runTEI") {
+                        PageXML_continue();
+                    } else {
+                        TEI_continue();
+                    }
+                }
+            );
         });
 
         $("#addTempSignal").click( function() {

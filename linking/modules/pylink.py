@@ -642,19 +642,31 @@ def getNames(xml):
     len_saver = []
     for i, tl in enumerate(textlines):
         if i > 0:
-            lastline = textlines[i-1].find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode").text
+            lastline = textlines[i-1].find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode")
+            if lastline is not None:
+                lastline = lastline.text
+            else:
+                lastline = ""
         else:
             lastline = ""
         line = tl.find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode")
+        if line is not None:
+            line = line.text
+        else:
+            line = ""
         if i+1 < len(textlines):
-            nextline = textlines[i+1].find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode").text
+            nextline = textlines[i+1].find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode")
+            if nextline is not None:
+                nextline = nextline.text
+            else:
+                nextline = ""
         else:
             nextline = ""
-        len_saver.append(len(line.text))
+        len_saver.append(len(line))
         taginfo = get_tag_info(tl.get("custom"), i)
         all_tags[i] = OrderedDict()
         for ti in taginfo:
-            tag, string, context = get_tagged_str(ti, line.text, lastline, nextline)
+            tag, string, context = get_tagged_str(ti, line, lastline, nextline)
             string = (string, context) # DIRTY WATCH OUT, FROM THIS POINT ON, STRING IS A TUPLE, NOT A STRING OBJECT
             all_tags[i][tag] = string
     complete_tags = OrderedDict()

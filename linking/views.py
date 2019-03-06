@@ -5,11 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import NormEntry, MissingEntry
 from .modules.pylink import getNames, getCand, get_persons, get_places, get_organizations, change_XML, getTEIData, getTEINames
 from .modules.transkribusConnect import login, getCollections, getDocuments, getDocumentR, postPage
+from .modules.ssrqConnect import createDummy
 import json
+
 
 class IndexView(generic.TemplateView):
     template_name = "linking/index.html"
-   
+
+
 @csrf_exempt
 def changeXML(request):
     """
@@ -38,8 +41,7 @@ def getNamesTEI(request):
         data = getTEINames(request.POST.get("input", None));
         # TODO: maybe include the stuff getDataTEI does in here instead?
         return JsonResponse(data);
-    
-        
+
         
 @csrf_exempt
 def getDataTEI(request):
@@ -133,14 +135,14 @@ def submitNorm(request):
     
 @csrf_exempt
 def submitMissingEntry(request):
+    """
+    :param request:
+    :return dict with link_id (string):
+    """
     if request.is_ajax():
-        string = request.POST.get("context", None)
-        document = request.POST.get("doc", None)
-        reflink = request.POST.get("ref", None)
-        author = request.POST.get("author", None)
-        new = MissingEntry(context=string, doc=document, ref=reflink, author=author)
-        new.save()
-    return JsonResponse({"":""})
+        name = request.POST.get("name", None)
+        link_id = createDummy(name)
+    return JsonResponse({"entry":link_id})
     
     
 @csrf_exempt
