@@ -141,8 +141,9 @@ def submitMissingEntry(request):
     """
     if request.is_ajax():
         name = request.POST.get("name", None)
-        link_id = createDummy(name)
-    return JsonResponse({"entry":link_id})
+        type = request.POST.get("type", None)
+        link_id = createDummy(name, type)
+    return JsonResponse({"entry" : link_id})
     
     
 @csrf_exempt

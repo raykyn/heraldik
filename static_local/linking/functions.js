@@ -14,6 +14,7 @@ $(document).ready(
         var docID;
         var pageNo = 1;
         var pages;
+        var current_type;
 
         var global_curr;
 
@@ -82,6 +83,7 @@ $(document).ready(
             } else {
                 type = name_tags.results[current_tag].type;
             }
+            current_type = type;
             
             $("#fullstring").html(full);
             $("#signalList").text(asString);
@@ -412,14 +414,18 @@ $(document).ready(
         $("#missingEntry").click( function() {
             var name = $("#missingName").val();
             $(".missingEntry").val("");
-            $.post("submitMissingEntry/", { name: name }).done(
+            $.post("submitMissingEntry/", { name: name, type: type }).done(
                 function(data) {
                     // data.entry holds the id
                     // open a new windoow/tab for editing purposes
                     // dont forget to add id to already taken ids
                     // link id
                     var link_id = data.entry;
-                    var win = window.open("https://www.ssrq-sds-fds.ch/persons-db-edit/?query="+link_id+"&?upd&query-type=perid", "_blank");
+                    if(link_id == "Too many requests") {
+                        alert("Too many requests in the last hour. No entry created.")
+                        return;
+                    }
+                    var win = window.open("https://www.ssrq-sds-fds.ch/persons-db-edit/?query="+link_id+"&?upd", "_blank");
                     if(win) {
                         // TODO: Find a way to put focus on the old window
                     } else {
