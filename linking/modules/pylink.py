@@ -145,7 +145,7 @@ def getTEINames(xml):
         context1 = getContext(child, True, ns)
         context2 = getContext(child, False, ns)
         context = ["[...]"+context1[-100:], context2[:100]+"[...]"]
-        names = child.text
+        names = child.text + processChildrenContext(child, ns)
         placeholder = placeholder_counter
         child.attrib[PLACEHOLDER_ATTRIBUTE_NAME] = str(placeholder)
         new_entry = {}
@@ -158,7 +158,7 @@ def getTEINames(xml):
     data["mod_xml"] = et.tounicode(root)
     
     return data
-    
+
 
 def getTEIData(xml):
     data = {
