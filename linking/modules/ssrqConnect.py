@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 import requests
+from .secrets.secrets import PLACE_DB_PW
 
 
 def createDummy(name, type):
@@ -17,7 +18,8 @@ def createDummy(name, type):
         elif type == "organization":
             r = requests.get("https://www.ssrq-sds-fds.ch/persons-db-api/?create_org={}".format(name))
         elif type == "place":
-            r = requests.get("https://www.ssrq-sds-fds.ch/places-db-edit/edit/create-place.xq?name=".format(name))
+            r = requests.get("https://www.ssrq-sds-fds.ch/places-db-edit/edit/create-place.xq?name={}".format(name),
+                             auth=("linking-tool", PLACE_DB_PW))
         else:
             print("{} type not recognized.".format(type))
             return ""
@@ -30,7 +32,7 @@ def createDummy(name, type):
         elif r.text == "not logged in as linking-tool":
             return "Not logged in."
         elif type == "place":
-            link_id = r.text
+            link_id = r.text.strip('"')
         else:
             link_id = r.json()["ID"]
     else:

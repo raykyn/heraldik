@@ -1,4 +1,4 @@
 *pycache*
 *.sqlite3
-*/secrets/*
+**/secrets/*
 .idea
