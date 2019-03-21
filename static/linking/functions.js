@@ -414,7 +414,7 @@ $(document).ready(
         $("#missingEntry").click( function() {
             var name = $("#missingName").val();
             $(".missingEntry").val("");
-            $.post("submitMissingEntry/", { name: name, type: type }).done(
+            $.post("submitMissingEntry/", { name: name, type: current_type }).done(
                 function(data) {
                     // data.entry holds the id
                     // open a new windoow/tab for editing purposes
@@ -424,8 +424,15 @@ $(document).ready(
                     if(link_id == "Too many requests") {
                         alert("Too many requests in the last hour. No entry created.")
                         return;
+                    } else if (link_id == "Not logged in.") {
+                        alert("Please log into the linking-tool account of the place database to create an entry.")
                     }
-                    var win = window.open("https://www.ssrq-sds-fds.ch/persons-db-edit/?query="+link_id+"&?upd", "_blank");
+                    var win;
+                    if(current_type == "person" || current_type == "organization") {
+                        win = window.open("https://www.ssrq-sds-fds.ch/persons-db-edit/?query="+link_id+"&?upd", "_blank");
+                    } else {
+                        win = window.open("https://www.ssrq-sds-fds.ch/places-db-edit/edit/edit-place.xq?id="+link_id, "_blank");
+                    }
                     if(win) {
                         // TODO: Find a way to put focus on the old window
                     } else {

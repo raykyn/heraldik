@@ -17,8 +17,7 @@ def createDummy(name, type):
         elif type == "organization":
             r = requests.get("https://www.ssrq-sds-fds.ch/persons-db-api/?create_org={}".format(name))
         elif type == "place":
-            print("Place type not yet implemented.")
-            return ""
+            r = requests.get("https://www.ssrq-sds-fds.ch/places-db-edit/edit/create-place.xq?name=".format(name))
         else:
             print("{} type not recognized.".format(type))
             return ""
@@ -28,9 +27,15 @@ def createDummy(name, type):
     if r.status_code == requests.codes.ok:
         if r.text == "Request limit reached for this hour":
             return "Too many requests."
+        elif r.text == "not logged in as linking-tool":
+            return "Not logged in."
+        elif type == "place":
+            link_id = r.text
         else:
             link_id = r.json()["ID"]
     else:
+        print(r.status_code)
+        print(r.headers)
         print("Failed to create dummy id for " + name)
         link_id = ""
 

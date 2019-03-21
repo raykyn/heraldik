@@ -650,7 +650,7 @@ def getNames(xml):
         else:
             lastline = ""
         line = tl.find(".//{http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15}Unicode")
-        if line is not None:
+        if line is not None and line.text is not None:
             line = line.text
         else:
             line = ""
