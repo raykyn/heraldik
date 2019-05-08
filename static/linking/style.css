@@ -142,7 +142,7 @@ table {
     width: 80%;
 }
 
-#smaller {
+.smaller {
     width: 90%;
     height: 90%;
     display: flex;
@@ -225,4 +225,8 @@ table {
     border-bottom: dotted;
     border-width: 1px;
     width: 50%;
+}
+
+#db_select {
+    float: right;
 }

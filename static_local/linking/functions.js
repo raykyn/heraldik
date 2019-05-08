@@ -1,6 +1,8 @@
 $(document).ready(
     function(){
         
+        $('#db_select').val("ssrq");
+        
         typeColorDict = {
             "person" : "teal",
             "organization" : "yellowGreen",
@@ -19,6 +21,7 @@ $(document).ready(
         var global_curr;
 
         var mode = "pageXML";
+        var chosen_db = "ssrq"; // this is our standard db
 
         var all_past_names = [];
         var already_chosen_ids = [];
@@ -49,6 +52,13 @@ $(document).ready(
             else {
                 return false;
             }
+        }
+        
+        function checkIfRefNotPresent(curr) {
+            if(curr.tag[0].ref) {
+                return false;
+            }
+            return true;
         }
 
         function processTag(curr) {
@@ -90,17 +100,56 @@ $(document).ready(
             
             $(".changeOnType").css("background-color", typeColorDict[type]);
 
-            $.post("getRefCandidates/", { 
-                input: JSON.stringify(joined), 
-                pubyear: pubyear,
-                past_names: JSON.stringify(all_past_names),
-                past_ids: JSON.stringify(already_chosen_ids),
-                type: type
-            }).done(
-            function(data) {
-                updateCandWindow(data["results"], curr);
-                all_past_names.concat(joined);
-            });
+            if(chosen_db == "ssrq") {
+                $.post("getRefCandidates/", { 
+                    input: JSON.stringify(joined), 
+                    pubyear: pubyear,
+                    past_names: JSON.stringify(all_past_names),
+                    past_ids: JSON.stringify(already_chosen_ids),
+                    type: type
+                }).done(
+                function(data) {
+                    updateCandWindow(data["results"], curr);
+                    all_past_names.concat(joined);
+                });
+            } else if (chosen_db == "gnd") {
+                // put everything in this part in a separate funtion later
+                //console.log(joined)
+                // send one query (q0, q1, q2, q3...) for each pair of signalwords
+                // sort by the overall best score
+                var query_types = convertTypeGND[type];
+                var query_array = []
+                for(var x = 0; x < query_types.length; x++) {
+                    for(var i = 0; i < joined.length; i++) {
+                        query_array.push([joined[i], query_types[x]]);
+                        for(var j = i+1; j < joined.length; j++) {
+                            query_array.push([[joined[i], joined[j]].join(", "), query_types[x]]);
+                        }
+                    }
+                }
+                var queries = {}
+                for(var i = 0; i < query_array.length; i++) {
+                    queries[String(i)] = {"query": query_array[i][0], "type": query_array[i][1]};
+                }
+                console.log(queries);
+                var query_data = {"queries" : JSON.stringify(queries)};
+                $.ajax({
+                    url: "http://lobid.org/gnd/reconcile", 
+                    type: "POST",
+                    data: query_data,
+                    success: function(result){
+                        console.log(result);
+                        // instead of logging, get detailed information about the top 10? 50? 100? hits
+                        // maybe field search will be better...
+                    }
+                });
+            }
+        }
+        
+        convertTypeGND = {
+            "person" : ["Person"],
+            "place" : ["PlaceOrGeographicName"],
+            "organization" : ["Family", "CorporateBody"]
         }
 
         toGerman = {
@@ -217,14 +266,18 @@ $(document).ready(
                     }
                     else if(current_tag+1 == name_tags.results.length) {
                         for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                            name_tags.results[current_tag].tag[i]["ref"] = null;
+                            if(checkIfRefNotPresent(name_tags.results[current_tag])) {
+                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            }
                         }
                         chosen_refs[current_tag] = name_tags.results[current_tag].tag;
                         modifyXML();
                     }
                     else {
                         for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                            name_tags.results[current_tag].tag[i]["ref"] = null;
+                            if(checkIfRefNotPresent(name_tags.results[current_tag])) {
+                                name_tags.results[current_tag].tag[i]["ref"] = null;
+                            }
                         }
                         chosen_refs[current_tag] = name_tags.results[current_tag].tag;
                     }
@@ -293,30 +346,7 @@ $(document).ready(
             current_tag++;
             //
             if(mode != "runTEI") {
-                if(current_tag >= name_tags.results.length) {
-                    modifyXML()
-                }
-                else {
-                    for (current_tag; current_tag < name_tags.results.length; current_tag++) {
-                        if(filterTag(name_tags.results[current_tag])) {
-                            processTag(name_tags.results[current_tag]);
-                            break
-                        }
-                        else if(current_tag+1 == name_tags.results.length) {
-                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                                name_tags.results[current_tag].tag[i]["ref"] = null;
-                            }
-                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                            modifyXML()
-                        }
-                        else {
-                            for (var i = 0; i < name_tags.results[current_tag].tag.length; i++) {
-                                name_tags.results[current_tag].tag[i]["ref"] = null;
-                            }
-                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                        }
-                    }
-                }
+                PageXML_continue();
             } else {
                 TEI_continue();
             }
@@ -325,6 +355,7 @@ $(document).ready(
         $("#skip").click( function() { skip()} );
 
         $(".run").click( function() {
+            console.log("Running...");
     		setStandard();
             cleanCandWindows();
             mode = $(this)[0].id;
@@ -347,20 +378,19 @@ $(document).ready(
                 $.post("getNameTags/", { input: xml, }).done(
                 function(data) {
                     name_tags = data;
-                    for (var i = 0; i < name_tags.results.length; i++) {
-                        var curr = name_tags.results[i];
-                        if(filterTag(curr)) {
-                            current_tag = i;
-                            processTag(curr);
-                            break;
-                        }
-                        else {
-                            for (var j = 0; j < name_tags.results[current_tag].tag.length; j++) {
-                                name_tags.results[current_tag].tag[j]["ref"] = null;
-                            }
-                            chosen_refs[current_tag] = name_tags.results[current_tag].tag;
-                        }
-                    }
+                    PageXML_continue();
+                    //~ console.log(name_tags);
+                    //~ for (var i = 0; i < name_tags.results.length; i++) {
+                        //~ var curr = name_tags.results[i];
+                        //~ current_tag = i;
+                        //~ if(filterTag(curr)) {
+                            //~ processTag(curr);
+                            //~ break;
+                        //~ }
+                        //~ else {
+                            //~ PageXML_continue();
+                        //~ }
+                    //~ }
                 });
             }
             else if(xml.length > 0 && mode == "runTEI") {
@@ -579,6 +609,16 @@ $(document).ready(
                 }
                 $("#showXMLText").html(all_text.join("\n\n"));
             });
+        });
+        
+        $('#db_select').on('change', function(evt, params) {
+            chosen_db = $('#db_select').val();
+
+            if(chosen_db == "ssrq") {
+                $('#missingEntryContainer').css('display', 'inline');
+            } else {
+                $('#missingEntryContainer').css('display', 'none');
+            }
         });
     }
 );
