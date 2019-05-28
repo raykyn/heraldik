@@ -305,15 +305,15 @@ def get_first_mention_or_birth(person, year):
             else:
                 um = False
             bs = re.findall("\d{3,4}", b)
-            valid_birthdates.append((um, bs))
-        try:
+            if bs:
+                valid_birthdates.append((um, bs))
+        if valid_birthdates:
             earliest_list = \
             sorted(valid_birthdates, key=lambda x: (x[0], sorted(x[1], key=lambda y: int(y))[0]), reverse=True)[
                 0]  # [(str. []), (str, [])]
             earliest = sorted(earliest_list[1], key=lambda y: int(y))[0] # (str, [])
-            return (earliest_list[0], earliest)
-        except IndexError:
-            pass
+            return (earliest_list[0], int(earliest))
+        
     first_mentions = [e for e in person["fmention"] if e is not None]
     if len(first_mentions) > 0:
         valid_fmentions = []
@@ -324,15 +324,14 @@ def get_first_mention_or_birth(person, year):
             else:
                 um = False
             bs = re.findall("\d{3,4}", b)
-            valid_fmentions.append((um, bs))
-        try:
+            if bs:
+                valid_fmentions.append((um, bs))
+        if valid_fmentions:
             earliest_list = \
             sorted(valid_fmentions, key=lambda x: (x[0], sorted(x[1], key=lambda y: int(y))[0]), reverse=True)[
                 0]  # [(str. []), (str, [])]
             earliest = sorted(earliest_list[1], key=lambda y: int(y))[0] # (str, [])
-            return (earliest_list[0], earliest)
-        except IndexError:
-            pass
+            return (earliest_list[0], int(earliest)-50)
     return None
         
         
@@ -418,8 +417,8 @@ def get_persons(names, year, past_names, past_ids):
             if earliest is None or earliest == 0:
                 person_dict["year_diff"] = 100
             else:
-                earliest_date = int(earliest[1])
-                person_dict["earliest_date"] = earliest_date
+                earliest_date = earliest[1]
+                #person_dict["earliest_date"] = earliest_date # is this redundant?
                 um = earliest[0]
                 if um:
                     umyear = year + 10
