@@ -2,6 +2,7 @@
 
 import csv
 from collections import namedtuple, OrderedDict, defaultdict
+from .parameters import FIRST_MENTION_TOLERANCE
 try:
     from lxml import etree as et
 except:
@@ -331,7 +332,7 @@ def get_first_mention_or_birth(person, year):
             sorted(valid_fmentions, key=lambda x: (x[0], sorted(x[1], key=lambda y: int(y))[0]), reverse=True)[
                 0]  # [(str. []), (str, [])]
             earliest = sorted(earliest_list[1], key=lambda y: int(y))[0] # (str, [])
-            return (earliest_list[0], int(earliest)-50)
+            return (earliest_list[0], int(earliest)-FIRST_MENTION_TOLERANCE)
     return None
         
         
