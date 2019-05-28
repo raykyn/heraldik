@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "104.248.136.9"]
 INSTALLED_APPS = [
     'heraldik.apps.HeraldikConfig',
     'linking.apps.LinkingConfig',
+    'dorsual.apps.DorsualConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
