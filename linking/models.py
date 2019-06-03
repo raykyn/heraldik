@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class NormEntry(models.Model):
     """Database entry original name and corresponding normalized version."""
     entryNo = models.IntegerField(default=0)

@@ -570,7 +570,6 @@ $(document).ready(
             docID = $('#doc_select').val();
             $.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
                 function(data) {
-                    // TODO: Create Select Element for page choice
                     pages = data["results"]["pageList"]["pages"]
                     pageLen = pages.length;
                     var cont = $('#page_select')[0];
