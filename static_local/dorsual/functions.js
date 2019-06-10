@@ -24,16 +24,19 @@ $(document).ready(
                                 while(cont.firstChild) {
                                     cont.removeChild(cont.firstChild);
                                 }
-                                var new_option = $('<option value="None" disabled selected>Wähle Collection</option>');
-                                $('#coll_select').append(new_option);
+                                // var new_option = $('<option value="None" disabled selected>Wähle Collection</option>');
+                                coll_select = $('#coll_select')[0];
+
                                 var colls = data["results"];
                                 colls.sort((a, b) => a["colName"].localeCompare(b["colName"]))
                                 for (var i = 0; i < colls.length; i++) {
                                     var colID = colls[i]["colId"];
                                     var colName = colls[i]["colName"];
-                                    var new_option = $('<option value="'+colID+'">'+colName+'</option>');
-                                    $('#coll_select').append(new_option);
+                                    // var new_option = $('<option value="'+colID+'">'+colName+'</option>');
+                                    // $('#coll_select').append(new_option);
+                                    coll_select.options[coll_select.options.length] = new Option(colName, colID);
                                 }
+                                $('.selectpicker').selectpicker('refresh');
                             }
                     	);
                     }
@@ -50,19 +53,22 @@ $(document).ready(
     	}
     	
     	$("#goBtn").click( function() {
-    		var forminfo = $("#filterForm").serializeArray();
-    		var colID = forminfo[0]["value"];
-    		var type = forminfo[1]["value"];
-    		var filter = forminfo[2]["value"];
+    		var colIDs = $("#coll_select").val();
+    		var type = $("#dorsNote").val();
+    		var filter = $("#alreadyProcessed").val();
 
 			$("#container").empty();
 
-    		$.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
+			$("#loadingSpinner").addClass("spinner-border").addClass("spinner-border-sm");
+
+			for (c in colIDs) {
+				let colID = colIDs[c];
+				$.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
                 function(data) {
                 	data["results"] = data["results"].sort(compare);
                 	//for (var i = 0; i < data["results"].length; i++) {
                 	for (var i = 0; i < data["results"].length; i++) {
-                		var docID = data["results"][i]["docId"];
+                		let docID = data["results"][i]["docId"];
                 		$.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
                 			function(data) {
                 				var docTitle = data["results"]["md"]["title"];
@@ -82,7 +88,8 @@ $(document).ready(
                 		);
                 	}
                 }
-            );
+            	);
+			}
     	});
 
     	function get_coords (textregion) {
@@ -158,7 +165,8 @@ $(document).ready(
 
     	function create_row (textregion, imageName, docTitle, targetType, collID, docID, filter) {
 			$.post("checkFilter/", {
-    			regionID: textregion.getAttribute("id")
+    			regionID: textregion.getAttribute("id"),
+    			docID: docID
     		}).done( function (data) {
     			var exists_in_db = data["exists"]
     			var old_judgement = data["judgement"];
@@ -169,6 +177,8 @@ $(document).ready(
 
     			var type = detect_type(textregion);
 	    		if (targetType == "All" || targetType == type) {
+	    			$("#loadingSpinner").removeClass("spinner-border").removeClass("spinner-border-sm");
+
 	    			var coords = get_coords(textregion);
 	    			var text = get_text(textregion);
 

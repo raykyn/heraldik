@@ -55,6 +55,7 @@ def submitJudgement(request):
 			collectionID=collID,
 			documentID=docID,
 			regionID=regionID,
+			docAndRegion=docID+regionID,
 			documentTitle=docTitle,
 			dorsualType=dorType,
 			imageSource=image,
@@ -69,9 +70,10 @@ def checkFilter(request):
 	if request.is_ajax():
 		fil = request.POST.get("filter")
 		regionID = request.POST.get("regionID")
-		exists = True if dorsualEntry.objects.filter(regionID=regionID).exists() else False
+		docID = request.POST.get("docID")
+		exists = True if dorsualEntry.objects.filter(docAndRegion=docID+regionID).exists() else False
 		if exists:
-			judgement = dorsualEntry.objects.get(pk=regionID).judgement
+			judgement = dorsualEntry.objects.get(docAndRegion=docID+regionID).judgement
 			if judgement:
 				return JsonResponse({"exists": 1, "judgement": 1})
 			else:

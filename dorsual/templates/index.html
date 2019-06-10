@@ -10,6 +10,9 @@
 		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<script type="text/javascript" src="{% static 'dorsual/functions.js' %}"></script>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 	</head>
 	<body>
 		<div class="container-fluid text-light">
@@ -25,21 +28,31 @@
 		  		</div>
 		  		<div class="col">
 		  			<form id="filterForm" class="form-inline">
-			  			<select id="coll_select" name="coll" class="form-control mb-2 mr-sm-2 col-4">
+			  			<!-- <select id="coll_select" name="coll" class="form-control mb-2 mr-sm-2 col-4">
 	                        <option value="None" selected disabled>Einloggen zum Wählen der Collection</option>
-	                    </select>
-			  			<select id="dorsNote" name="dorsualNotizFilter" class="form-control mb-2 mr-sm-2">
+	                    </select> -->
+	                    <select id="coll_select" name="coll" class="selectpicker form-control mb-2 mr-sm-2" multiple data-selected-text-format="count">
+						</select>
+			  			<select id="dorsNote" name="dorsualNotizFilter" class="selectpicker form-control mb-2 mr-sm-2">
 	                        <option value="None" disabled selected>Wähle Notiztyp</option>
 	                        <option value="">Kein Typ</option>
 	                        <option value="All">Alle Typen</option>
+	                        <option value="Dorsual_Jahreszahl-Eins">Jahreszahl 1</option>
+	                        <option value="Dorsual_Jahreszahl-Zwei">Jahreszahl 2</option>
+	                        <option value="Dorsual_Jahreszahl-Drei">Jahreszahl 3</option>
+	                        <option value="Dorsual_Jahreszahl-Vier">Jahreszahl 4</option>
+	                        <option value="Dorsual_Nummer">Nummer</option>
 	                        <option value="Dorsual_Regesta">Regesta</option>
 	                        <option value="Dorsual_Sigle">Sigle</option>
 	                        <option value="Dorsual_StAAG">StAAG</option>
 	                        <option value="Dorsual_StAAG-Stempel">StAAG-Stempel</option>
 	                        <option value="Dorsual_Textualis">Textualis</option>
 	                    </select>
-	                    <button type="button" id="goBtn" class="btn btn-primary mb-2 mr-sm-2">Los!</button>
-	                    <select id="alreadyProcessed" name="alreadyProcessedFilter" class="form-control mb-2 mr-sm-2">
+	                    <button type="button" id="goBtn" class="btn btn-primary mb-2 mr-sm-2">
+	                    	<span id="loadingSpinner"></span>
+	                    	Los!
+	                	</button>
+	                    <select id="alreadyProcessed" name="alreadyProcessedFilter" class="selectpicker form-control mb-2 mr-sm-2">
 	                        <option value="not_checked_only" selected>Ignoriere schon korrigierte</option>
 	                        <option value="all">Zeige alle</option>
 	                        <option value="checked_only">Zeige nur korrigierte</option>
