@@ -51,6 +51,35 @@ $(document).ready(
     			return 0;
     		}
     	}
+
+    	function getDocumentList (c, colIDs, type, filter) {
+    		let colID = colIDs[c];
+			$.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
+            function(data) {
+            	data["results"] = data["results"].sort(compare);
+            	for (var i = 0; i < data["results"].length; i++) {
+            		let docID = data["results"][i]["docId"];
+            		$.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
+            			function(data) {
+            				var docTitle = data["results"]["md"]["title"];
+            				var pages = data["results"]["pageList"]["pages"];
+	                		var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"];
+	                		$.get(url).done( function(data) {
+	                			var xmlText = new XMLSerializer().serializeToString(data);
+				                var relevantPages = data.getElementsByTagName("Page");
+				                var relevantPage = relevantPages[0];
+				                var imageFileName = relevantPage.getAttribute("imageFilename");
+				                var textregions = relevantPage.getElementsByTagName("TextRegion");
+				                for (var j = 0; j < textregions.length; j++) {
+				                	create_row(textregions[j], imageFileName, docTitle, type, colID, docID, filter);
+				                }
+	                		});
+            			}
+            		);
+            	}
+            }
+        	);
+    	}
     	
     	$("#goBtn").click( function() {
     		var colIDs = $("#coll_select").val();
@@ -62,33 +91,7 @@ $(document).ready(
 			$("#loadingSpinner").addClass("spinner-border").addClass("spinner-border-sm");
 
 			for (c in colIDs) {
-				let colID = colIDs[c];
-				$.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
-                function(data) {
-                	data["results"] = data["results"].sort(compare);
-                	//for (var i = 0; i < data["results"].length; i++) {
-                	for (var i = 0; i < data["results"].length; i++) {
-                		let docID = data["results"][i]["docId"];
-                		$.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
-                			function(data) {
-                				var docTitle = data["results"]["md"]["title"];
-                				var pages = data["results"]["pageList"]["pages"];
-		                		var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"];
-		                		$.get(url).done( function(data) {
-		                			var xmlText = new XMLSerializer().serializeToString(data);
-					                var relevantPages = data.getElementsByTagName("Page");
-					                var relevantPage = relevantPages[0];
-					                var imageFileName = relevantPage.getAttribute("imageFilename");
-					                var textregions = relevantPage.getElementsByTagName("TextRegion");
-					                for (var j = 0; j < textregions.length; j++) {
-					                	create_row(textregions[j], imageFileName, docTitle, type, colID, docID, filter);
-					                }
-		                		});
-                			}
-                		);
-                	}
-                }
-            	);
+				getDocumentList(c, colIDs, type, filter);
 			}
     	});
 
