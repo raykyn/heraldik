@@ -3,6 +3,7 @@ $(document).ready(
 
     	var root_url = "http://104.248.136.9:5004/01/"
     	var sessionID = "";
+        var changeLog = {};
 
     	$("#loginBtn").click( function() {
     		var forminfo = $("#loginForm").serializeArray();
@@ -51,6 +52,12 @@ $(document).ready(
     			return 0;
     		}
     	}
+        
+        function createRows (textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, document_col) {
+            for (var j = 0; j < textregions.length; j++) {
+                create_row(textregions[j], imageFileName, docTitle, type, colID, docID, filter, xmlText, document_col);
+            }
+        }
 
     	function getDocumentList (c, colIDs, type, filter) {
     		let colID = colIDs[c];
@@ -63,16 +70,46 @@ $(document).ready(
             			function(data) {
             				var docTitle = data["results"]["md"]["title"];
             				var pages = data["results"]["pageList"]["pages"];
-	                		var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"];
+	                		var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"]; // TODO: Could there be mutliple pages with dorsual notes?
 	                		$.get(url).done( function(data) {
+                                changeLog[docID] = {};
 	                			var xmlText = new XMLSerializer().serializeToString(data);
 				                var relevantPages = data.getElementsByTagName("Page");
 				                var relevantPage = relevantPages[0];
 				                var imageFileName = relevantPage.getAttribute("imageFilename");
 				                var textregions = relevantPage.getElementsByTagName("TextRegion");
-				                for (var j = 0; j < textregions.length; j++) {
-				                	create_row(textregions[j], imageFileName, docTitle, type, colID, docID, filter);
-				                }
+                                var document_row = $("<div class='row border bg-secondary p-5'></div>");
+                                var document_col = $("<div class='col bg-secondary'></div>");
+                                $("#container").append(document_row);
+                                document_row.append(document_col);
+                                var docName_row = $("<div class='row m-2'><b>" + docTitle + "</b></div>");
+                                document_col.append(docName_row);
+                                var entries_row = $("<div class='row bg-secondary'></div>");
+                                var entries_col = $("<div class='col bg-secondary'></div>");
+                                document_col.append(entries_row);
+                                entries_row.append(entries_col);
+				                createRows(textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, entries_col);
+                                var do_change_btn_row = $("<div class='row m-2 float-right'></div>");
+		    		            var do_change_btn = $("<button type='button' class='btn btn-primary'>Änderungen übernehmen</button>");
+                                do_change_btn_row.append(do_change_btn);
+                                document_col.append(do_change_btn_row);
+                                
+                                do_change_btn.click( function() {
+                                    
+                                    console.log(changeLog);
+                                    console.log(changeLog[docID]);
+                                    
+                                    $.post("changeDorsualType/", {
+                                        changeLog: JSON.stringify(changeLog[docID]),
+                                        xmlText: xmlText,
+                                        collID: colID,
+                                        docID: docID,
+                                        sessionID: sessionID,
+                                        pageNo: pages.length
+                                    });
+                                    
+                                    do_change_btn.removeClass("btn-primary").addClass("btn-success");
+                                });
 	                		});
             			}
             		);
@@ -89,6 +126,8 @@ $(document).ready(
 			$("#container").empty();
 
 			$("#loadingSpinner").addClass("spinner-border").addClass("spinner-border-sm");
+            
+            changeLog = {};
 
 			for (c in colIDs) {
 				getDocumentList(c, colIDs, type, filter);
@@ -166,7 +205,7 @@ $(document).ready(
 				return false
     	}
 
-    	function create_row (textregion, imageName, docTitle, targetType, collID, docID, filter) {
+    	function create_row (textregion, imageName, docTitle, targetType, collID, docID, filter, xmlText, document_row) {
 			$.post("checkFilter/", {
     			regionID: textregion.getAttribute("id"),
     			docID: docID
@@ -193,14 +232,18 @@ $(document).ready(
 
 
 		    		var text_col = $("<div class='col p-2'></div>");
-		    		if (targetType == "All") {
-		    			var type_paragraph = $("<p><b>" + type + "</b></p>");
-		    			text_col.append(type_paragraph);
-		    		}
 		    		var text_paragraph = $("<p>" + text + "</p>");
 
-		    		var btn_col = $("<div class='col-2 p-2'></div>");
-		    		var docName_row = $("<div class='row m-2'><b>" + docTitle + "</b></div>");
+		    		var btn_col = $("<div class='col-3 p-2'></div>");
+		    		// if (targetType == "All") {
+		    		// 	var type_paragraph = $("<p><b>" + type + "</b></p>");
+		    		// 	btn_col.append(type_paragraph);
+		    		// }
+		    		var type_row = $("<div class='row'></div>");
+		    		// Input the type instead of dropdown to save RAM
+		    		var type_input = $("<input class='col-6 m-2' type='text' name='type_input'>");
+		    		type_input.val(type);
+		    		var type_btn = $("<button type='button' class='btn btn-primary m-2'>Speichern</button>")
 		    		var corr_row = $("<div class='row m-2'></div>");
 		    		var corr_btn = $("<button type='button' class='btn btn-primary'>Korrekt</button>")
 		    		var wrong_row = $("<div class='row m-2'></div>");
@@ -211,6 +254,25 @@ $(document).ready(
     				} else if (exists_in_db && !old_judgement) {
     					wrong_btn.removeClass("btn-primary").addClass("btn-danger");
     				}
+
+    				type_btn.click( function () {
+    					type_input_value = type_input.val();
+                        
+                        changeLog[docID][textregion.getAttribute("id")] = type_input_value;
+                        
+                        console.log(changeLog);
+                        
+                        type_btn.removeClass("btn-primary").addClass("btn-success");
+                        
+/*    					$.post("changeDorsualType/", {
+    						inputVal: type_input_value,
+    						xmlText: xmlText,
+    						collID: collID,
+    						docID: docID,
+    						sessionID: sessionID,
+    						txtRegion: textregion.id
+    					});*/
+    				});
 
 		    		corr_btn.click( function () {
 		    			$.post("submitJudgement/", {
@@ -243,14 +305,16 @@ $(document).ready(
 		    		new_row.append(image_col);
 		    		text_col.append(text_paragraph);
 		    		new_row.append(text_col);
-		    		btn_col.append(docName_row);
+		    		btn_col.append(type_row);
+		    		type_row.append(type_input);
+		    		type_row.append(type_btn);
 		    		btn_col.append(corr_row);
-		    		btn_col.append(corr_btn);
+		    		corr_row.append(corr_btn);
 		    		btn_col.append(wrong_row);
-		    		btn_col.append(wrong_btn);
+		    		wrong_row.append(wrong_btn);
 		    		new_row.append(btn_col);
 
-		    		$("#container").append(new_row);
+		    		document_row.append(new_row);
 	    		}
     		});
     	}

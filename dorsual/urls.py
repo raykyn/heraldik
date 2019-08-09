@@ -9,5 +9,6 @@ urlpatterns = [
         path('getDocumentList/', views.getDocumentList, name='getDocumentList'),
         path('getDocument/', views.getDocument, name='getDocument'),
         path('submitJudgement/', views.submitJudgement, name='submitJudgement'),
-        path('checkFilter/', views.checkFilter, name='checkFilter')
+        path('checkFilter/', views.checkFilter, name='checkFilter'),
+        path('changeDorsualType/', views.changeDorsualType, name='changeDorsualType'),
         ]
