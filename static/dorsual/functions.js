@@ -1,7 +1,8 @@
 $(document).ready(
     function(){
 
-    	var root_url = "http://104.248.136.9:5004/01/"
+    	// var root_url = "http://104.248.136.9:5004/01/"
+	var root_url = "http://130.60.244.178:8182/iiif/2/"
     	var sessionID = "";
         var changeLog = {};
 
@@ -224,8 +225,9 @@ $(document).ready(
 	    			var coords = get_coords(textregion);
 	    			var text = get_text(textregion);
 
-		    		var src = root_url + docTitle + "/" + imageName.replace("jpg", "jp2") + "/" + coords + "/full/0/default.jpg"
-
+		    		// var src = root_url + docTitle + "/" + imageName.replace("jpg", "jp2") + "/" + coords + "/full/0/default.jpg"
+				var src = root_url + imageName.replace("jpg", "jp2") + "/" + coords + "/full/0/default.jpg"
+				
 		    		var new_row = $("<div class='row border bg-secondary'></div>");
 		    		var image_col = $("<div class='col-6'></div>")
 		    		var image_element = $("<img src='"+src+"' class='img-fluid mx-auto d-block' alt='" + src + "'>")
@@ -258,11 +260,11 @@ $(document).ready(
     				type_btn.click( function () {
     					type_input_value = type_input.val();
                         
-                        changeLog[docID][textregion.getAttribute("id")] = type_input_value;
-                        
-                        console.log(changeLog);
-                        
-                        type_btn.removeClass("btn-primary").addClass("btn-success");
+				changeLog[docID][textregion.getAttribute("id")] = type_input_value;
+				
+				// console.log(changeLog);
+				
+				type_btn.removeClass("btn-primary").addClass("btn-success");
                         
 /*    					$.post("changeDorsualType/", {
     						inputVal: type_input_value,
