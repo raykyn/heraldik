@@ -27,7 +27,7 @@ SECURE_SSL_REDIRECT = False
 # SECURITY WARNING: don't run with debug turned on in production!
 # In a separate file
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "104.248.136.9"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "104.248.136.9", "130.60.244.178"]
 
 
 # Application definition
