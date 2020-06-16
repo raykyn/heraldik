@@ -127,11 +127,11 @@ def getTEINames(xml):
     placeholder_counter = 0
     
     # first remove either abbrev or expan tags (and all choice tags)
-    xml = re.sub(r'<\?xml version="1.0" encoding="UTF-8"\?>', "", xml)
-    xml = re.sub(r"<abbr>.*?<\/abbr>", "", xml)
-    xml = re.sub(r"(<choice>|<\/choice>)", "", xml)
-    xml = re.sub(r"<expan>", "", xml)
-    xml = re.sub(r"<\/expan>", "", xml)
+    # xml = re.sub(r'<\?xml version="1.0" encoding="UTF-8"\?>', "", xml)
+    # xml = re.sub(r"<abbr>.*?<\/abbr>", "", xml)
+    # xml = re.sub(r"(<choice>|<\/choice>)", "", xml)
+    # xml = re.sub(r"<expan>", "", xml)
+    # xml = re.sub(r"<\/expan>", "", xml)
     
     root = et.fromstring(xml)
     ns = getNamespace(root)
