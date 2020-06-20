@@ -20,6 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 SECURE_SSL_REDIRECT = False
+CORS_ALLOW_CREDENTIALS = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # In a separate file
@@ -27,7 +28,7 @@ SECURE_SSL_REDIRECT = False
 # SECURITY WARNING: don't run with debug turned on in production!
 # In a separate file
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "104.248.136.9", "130.60.244.178"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "104.248.136.9", "130.60.244.178", "www.koenigsfelden.uzh.ch"]
 
 
 # Application definition

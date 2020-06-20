@@ -2,7 +2,7 @@ $(document).ready(
     function(){
 
     	// var root_url = "http://104.248.136.9:5004/01/"
-	var root_url = "http://130.60.244.178:8182/iiif/2/"
+	var root_url = "https://www.koenigsfelden.uzh.ch:5000/iiif/2/"
     	var sessionID = "";
         var changeLog = {};
 

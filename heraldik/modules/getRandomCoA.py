@@ -9,7 +9,7 @@ def getRandom():
     Return a random entry from wappen.tsv
     """
     alist = []
-    with open("static/heraldik/wappen.tsv") as coas:
+    with open("./wappen.tsv", encoding="utf8") as coas:
         reader = csv.DictReader(coas, delimiter="\t")
         for row in reader:
             alist.append(row)

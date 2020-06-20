@@ -1676,8 +1676,10 @@ $(document).ready(
         var current_coa;
         $("#getRandomShieldButton").click( function()
 	        {
-	        	$.get("solution", {}).done(
+			console.log("helloworld2");
+	        	$.get("solution/", {}).done(
 	        		function(data) {
+					console.log("helloworld");
 	        			current_coa = data;
 	        			$("#exampleShield").attr("src", data.link);
 	        		}
@@ -1717,7 +1719,7 @@ $(document).ready(
         	}
         	var blaz = $("textarea#blasonierung").val();
             if(blaz.length > 0) {
-            	$.get("output", { input: blaz, }).done(
+            	$.get("output/", { input: blaz, }).done(
                 function(data) {
                     console.log(data);
                     console.log(current_coa.solution)
