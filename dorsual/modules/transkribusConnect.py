@@ -59,14 +59,16 @@ def changeDorsualTypeInXML(change_log, xmlText, collID, docID, sessionID, pageNo
     change_log = json.loads(change_log)
     modified_xml = xmlText
     for textregionID, input_type in change_log.items():
-        # TODO: Implement case if entry has no structure tag yet
-        exp = """(?<=<TextRegion id="{}" custom=")(.*?structure {{type:)(\S+?);""".format(textregionID)
-        modified_xml = re.sub(exp, r"\1{};".format(input_type), modified_xml)
+        if input_type[1]:
+            exp = """(?<=<TextRegion( orientation="0\.0")? id="{}" custom=")(.*?structure {{type:)(\S+?);""".format(textregionID)
+            modified_xml = re.sub(exp, r"\2{};".format(input_type[0]), modified_xml)
+        else:
+            new_structure = "structure {{type:{};}} ".format(input_type[0])
+            exp = """(<TextRegion( orientation="0\.0")? id="{}" custom=")""".format(textregionID)
+            modified_xml = re.sub(exp, r"\1{}".format(new_structure), modified_xml)
 
     postPage(collID, docID, pageNo, sessionID, modified_xml)
     
-    # TODO: post the new xml to the server by using the postPage function
-    # always post to the pageNo that is last TODO: get this info somehow from js
     return True
 
 if __name__ == "__main__":
