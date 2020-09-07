@@ -60,13 +60,13 @@ def changeDorsualTypeInXML(change_log, xmlText, collID, docID, sessionID, pageNo
     modified_xml = xmlText
     for textregionID, input_type in change_log.items():
         if input_type[1]:
-            exp = """(?<=<TextRegion( orientation="0\.0")? id="{}" custom=")(.*?structure {{type:)(\S+?);""".format(textregionID)
-            modified_xml = re.sub(exp, r"\2{};".format(input_type[0]), modified_xml)
+            exp = """(<TextRegion( orientation="0\.0")? id="{}" custom=")(.*?structure {{type:)(\S+?);""".format(textregionID)
+            modified_xml = re.sub(exp, r"\1\3{};".format(input_type[0]), modified_xml)
         else:
             new_structure = "structure {{type:{};}} ".format(input_type[0])
             exp = """(<TextRegion( orientation="0\.0")? id="{}" custom=")""".format(textregionID)
             modified_xml = re.sub(exp, r"\1{}".format(new_structure), modified_xml)
-
+            
     postPage(collID, docID, pageNo, sessionID, modified_xml)
     
     return True
