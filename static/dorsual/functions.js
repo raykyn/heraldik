@@ -109,7 +109,7 @@ $(document).ready(
                                         docID: docID,
                                         sessionID: sessionID,
                                         pageNo: pages.length
-                                    });
+                                    }).fail(function(data) {alert("Posting to server has failed!")});
                                     
                                     do_change_btn.removeClass("btn-primary").addClass("btn-success");
                                 });

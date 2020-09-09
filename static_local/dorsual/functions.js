@@ -2,7 +2,7 @@ $(document).ready(
     function(){
 
     	// var root_url = "http://104.248.136.9:5004/01/"
-	var root_url = "http://130.60.244.178:8182/iiif/2/"
+	var root_url = "https://www.koenigsfelden.uzh.ch:5000/iiif/2/"
     	var sessionID = "";
         var changeLog = {};
 
@@ -55,7 +55,7 @@ $(document).ready(
     	}
         
         function createRows (textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, document_col) {
-            for (var j = 0; j < textregions.length; j++) {
+		for (var j = 0; j < textregions.length; j++) {
                 create_row(textregions[j], imageFileName, docTitle, type, colID, docID, filter, xmlText, document_col);
             }
         }
@@ -74,11 +74,12 @@ $(document).ready(
 	                		var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"]; // TODO: Could there be mutliple pages with dorsual notes?
 	                		$.get(url).done( function(data) {
                                 changeLog[docID] = {};
-	                			var xmlText = new XMLSerializer().serializeToString(data);
-				                var relevantPages = data.getElementsByTagName("Page");
-				                var relevantPage = relevantPages[0];
-				                var imageFileName = relevantPage.getAttribute("imageFilename");
-				                var textregions = relevantPage.getElementsByTagName("TextRegion");
+	                	var xmlText = new XMLSerializer().serializeToString(data);
+				var relevantPages = data.getElementsByTagName("Page");
+				var relevantPage = relevantPages[0];
+				//console.log(relevantPage);
+				var imageFileName = relevantPage.getAttribute("imageFilename");
+				var textregions = relevantPage.getElementsByTagName("TextRegion");
                                 var document_row = $("<div class='row border bg-secondary p-5'></div>");
                                 var document_col = $("<div class='col bg-secondary'></div>");
                                 $("#container").append(document_row);
@@ -89,13 +90,14 @@ $(document).ready(
                                 var entries_col = $("<div class='col bg-secondary'></div>");
                                 document_col.append(entries_row);
                                 entries_row.append(entries_col);
-				                createRows(textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, entries_col);
-                                var do_change_btn_row = $("<div class='row m-2 float-right'></div>");
-		    		            var do_change_btn = $("<button type='button' class='btn btn-primary'>Änderungen übernehmen</button>");
+				//console.log(imageFileName);
+				createRows(textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, entries_col);
+				var do_change_btn_row = $("<div class='row m-2 float-right'></div>");
+		    		var do_change_btn = $("<button type='button' class='btn btn-primary'>Änderungen übernehmen</button>");
                                 do_change_btn_row.append(do_change_btn);
                                 document_col.append(do_change_btn_row);
-                                
-                                do_change_btn.click( function() {
+
+				do_change_btn.click( function() {
                                     
                                     console.log(changeLog);
                                     console.log(changeLog[docID]);
@@ -107,7 +109,7 @@ $(document).ready(
                                         docID: docID,
                                         sessionID: sessionID,
                                         pageNo: pages.length
-                                    });
+                                    }).fail(function(data) {alert("Posting to server has failed!")});
                                     
                                     do_change_btn.removeClass("btn-primary").addClass("btn-success");
                                 });
@@ -226,7 +228,9 @@ $(document).ready(
 	    			var text = get_text(textregion);
 
 		    		// var src = root_url + docTitle + "/" + imageName.replace("jpg", "jp2") + "/" + coords + "/full/0/default.jpg"
-				var src = root_url + imageName.replace("jpg", "jp2") + "/" + coords + "/full/0/default.jpg"
+				//iconsole.log(imageName);
+				imagelinkname = imageName.replace(/(JPG|TIF|tiff|jpg)(\.jpg)?$/g, "jp2");
+				var src = root_url + imagelinkname + "/" + coords + "/full/0/default.jpg"
 				
 		    		var new_row = $("<div class='row border bg-secondary'></div>");
 		    		var image_col = $("<div class='col-6'></div>")
@@ -260,7 +264,7 @@ $(document).ready(
     				type_btn.click( function () {
     					type_input_value = type_input.val();
                         
-				changeLog[docID][textregion.getAttribute("id")] = type_input_value;
+				changeLog[docID][textregion.getAttribute("id")] = [type_input_value, type];
 				
 				// console.log(changeLog);
 				

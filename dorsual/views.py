@@ -93,4 +93,4 @@ def changeDorsualType(request):
         pageNo = request.POST.get("pageNo")
         response = changeDorsualTypeInXML(change_log, xmlText, collID, docID, sessionID, pageNo)
 
-        return JsonResponse({"":""})
+        return JsonResponse({"response": response})

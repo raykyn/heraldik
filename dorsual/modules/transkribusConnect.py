@@ -67,9 +67,9 @@ def changeDorsualTypeInXML(change_log, xmlText, collID, docID, sessionID, pageNo
             exp = """(<TextRegion( orientation="0\.0")? id="{}" custom=")""".format(textregionID)
             modified_xml = re.sub(exp, r"\1{}".format(new_structure), modified_xml)
             
-    postPage(collID, docID, pageNo, sessionID, modified_xml)
+    response = postPage(collID, docID, pageNo, sessionID, modified_xml)
     
-    return True
+    return response
 
 if __name__ == "__main__":
     data = login("KTest@gmx.ch", "")
