@@ -2,7 +2,7 @@ $(document).ready(
     function(){
 
     	// var root_url = "http://104.248.136.9:5004/01/"
-	var root_url = "https://www.koenigsfelden.uzh.ch:5000/iiif/2/"
+		var root_url = "https://www.koenigsfelden.uzh.ch:5000/iiif/2/"
     	var sessionID = "";
         var changeLog = {};
 
@@ -63,62 +63,62 @@ $(document).ready(
     	function getDocumentList (c, colIDs, type, filter) {
     		let colID = colIDs[c];
 			$.post("getDocumentList/", { sid: sessionID, colID: colID }).done(
-            function(data) {
-            	data["results"] = data["results"].sort(compare);
-            	for (var i = 0; i < data["results"].length; i++) {
-            		let docID = data["results"][i]["docId"];
-            		$.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
-            			function(data) {
-            				var docTitle = data["results"]["md"]["title"];
-            				var pages = data["results"]["pageList"]["pages"];
-	                		var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"]; // TODO: Could there be mutliple pages with dorsual notes?
-	                		$.get(url).done( function(data) {
-                                changeLog[docID] = {};
-	                	var xmlText = new XMLSerializer().serializeToString(data);
-				var relevantPages = data.getElementsByTagName("Page");
-				var relevantPage = relevantPages[0];
-				//console.log(relevantPage);
-				var imageFileName = relevantPage.getAttribute("imageFilename");
-				var textregions = relevantPage.getElementsByTagName("TextRegion");
-                                var document_row = $("<div class='row border bg-secondary p-5'></div>");
-                                var document_col = $("<div class='col bg-secondary'></div>");
-                                $("#container").append(document_row);
-                                document_row.append(document_col);
-                                var docName_row = $("<div class='row m-2'><b>" + docTitle + "</b></div>");
-                                document_col.append(docName_row);
-                                var entries_row = $("<div class='row bg-secondary'></div>");
-                                var entries_col = $("<div class='col bg-secondary'></div>");
-                                document_col.append(entries_row);
-                                entries_row.append(entries_col);
-				//console.log(imageFileName);
-				createRows(textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, entries_col);
-				var do_change_btn_row = $("<div class='row m-2 float-right'></div>");
-		    		var do_change_btn = $("<button type='button' class='btn btn-primary'>Änderungen übernehmen</button>");
-                                do_change_btn_row.append(do_change_btn);
-                                document_col.append(do_change_btn_row);
+            	function(data) {
+            		data["results"] = data["results"].sort(compare);
+            		for (var i = 0; i < data["results"].length; i++) {
+            			let docID = data["results"][i]["docId"];
+            			$.post("getDocument/", { colID: colID, docID: docID, sid: sessionID }).done(
+            				function(data) {
+            					var docTitle = data["results"]["md"]["title"];
+            					var pages = data["results"]["pageList"]["pages"];
+	                			var url = pages[pages.length-1]["tsList"]["transcripts"][0]["url"]; // TODO: Could there be mutliple pages with dorsual notes?
+	                			$.get(url).done( function(data) {
+                                	changeLog[docID] = {};
+	            					var xmlText = new XMLSerializer().serializeToString(data);
+									var relevantPages = data.getElementsByTagName("Page");
+									var relevantPage = relevantPages[0];
+									//console.log(relevantPage);
+									var imageFileName = relevantPage.getAttribute("imageFilename");
+									var textregions = relevantPage.getElementsByTagName("TextRegion");
+									var document_row = $("<div class='row border bg-secondary p-5'></div>");
+									var document_col = $("<div class='col bg-secondary'></div>");
+									$("#container").append(document_row);
+									document_row.append(document_col);
+									var docName_row = $("<div class='row m-2'><b>" + docTitle + "</b></div>");
+									document_col.append(docName_row);
+									var entries_row = $("<div class='row bg-secondary'></div>");
+									var entries_col = $("<div class='col bg-secondary'></div>");
+									document_col.append(entries_row);
+									entries_row.append(entries_col);
+									//console.log(imageFileName);
+									createRows(textregions, imageFileName, docTitle, type, colID, docID, filter, xmlText, entries_col);
+									var do_change_btn_row = $("<div class='row m-2 float-right'></div>");
+									var do_change_btn = $("<button type='button' class='btn btn-primary'>Änderungen übernehmen</button>");
+									do_change_btn_row.append(do_change_btn);
+									document_col.append(do_change_btn_row);
 
-				do_change_btn.click( function() {
-                                    
-                                    console.log(changeLog);
-                                    console.log(changeLog[docID]);
-                                    
-                                    $.post("changeDorsualType/", {
-                                        changeLog: JSON.stringify(changeLog[docID]),
-                                        xmlText: xmlText,
-                                        collID: colID,
-                                        docID: docID,
-                                        sessionID: sessionID,
-                                        pageNo: pages.length
-                                    }).fail(function(data) {alert("Posting to server has failed!")});
-                                    
-                                    do_change_btn.removeClass("btn-primary").addClass("btn-success");
-                                });
-	                		});
-            			}
-            		);
+									do_change_btn.click( function() {
+										console.log(changeLog);
+										console.log(changeLog[docID]);
+										
+										$.post("changeDorsualType/", {
+											changeLog: JSON.stringify(changeLog[docID]),
+											xmlText: xmlText,
+											collID: colID,
+											docID: docID,
+											sessionID: sessionID,
+											pageNo: pages.length
+										}).fail(function(data) {alert("Posting to server has failed!")});
+										
+										do_change_btn.removeClass("btn-primary").addClass("btn-success");
+									});
+	                			});
+							}
+						);
+				
+					}
             	}
-            }
-        	);
+			);
     	}
     	
     	$("#goBtn").click( function() {
